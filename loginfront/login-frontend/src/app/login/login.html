@@ -1,0 +1,43 @@
+<div class="page-container">
+  <div class="login-card">
+    <div class="login-form-container">
+      <h2 class="title">アカウントログイン</h2>
+
+      <form #loginForm="ngForm" (ngSubmit)="onSubmit(loginForm)">
+        <div class="form-group floating-label">
+          <input
+            id="username"
+            name="username"
+            ngModel
+            required
+            type="text"
+            class="input"
+            placeholder=" "
+            autocomplete="off"
+          />
+          <label for="username">ユーザーID</label>
+        </div>
+
+        <div class="form-group floating-label">
+          <input
+            id="password"
+            name="password"
+            ngModel
+            required
+            type="password"
+            class="input"
+            placeholder=" "
+            autocomplete="off" 
+          />
+          <label for="password">パスワード</label>
+        </div>
+
+        <div *ngIf="errorMessage" class="error-message">
+          {{ errorMessage }}
+        </div>
+
+        <button type="submit" class="login-button" [disabled]="!loginForm.valid">ログイン</button>
+      </form>
+    </div>
+  </div>
+</div>

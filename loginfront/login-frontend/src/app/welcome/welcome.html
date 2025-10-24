@@ -1,0 +1,20 @@
+<div class="welcome-container">
+  <div class="welcome-box">
+    <h2>ようこそ！ログインに成功しました。</h2>
+    <p>このページはログイン成功後に表示される画面です。</p>
+    <button (click)="logout()">ログアウト</button>
+  </div>
+
+  <div class="product-section" *ngIf="products.length > 0">
+    <h3>商品一覧</h3>
+
+    <div class="product-grid">
+      <div class="product-card" *ngFor="let product of products">
+        <div class="product-info">
+          <h4>{{ product.name }}</h4>
+          <p class="price">¥{{ product.price | number }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

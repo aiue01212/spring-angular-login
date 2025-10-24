@@ -1,0 +1,142 @@
+/* ページ全体を中央揃え */
+.page-container {
+  display: flex;
+  align-items: flex-start; 
+  justify-content: center;
+  height: 100vh;
+  background: #f2f2f2;
+  font-family: 'Segoe UI', sans-serif;
+  padding: 20px;
+  padding-top: 100px; 
+}
+
+/* 白い背景カード - 縦長で小さめ */
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 50px 30px;
+  background-color: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* フォーム全体を縦に並べる */
+.login-form-container {
+  display: flex;
+  flex-direction: column;
+  margin-top: -30px; 
+}
+
+/* タイトル */
+.title {
+  font-size: 22px;
+  font-weight: bold;
+  margin-bottom: 24px;
+  color: #222;
+}
+
+/* フローティングラベル対応のフォームグループ */
+.floating-label {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+/* 通常のフォームグループ */
+.form-group {
+  margin-bottom: 20px;
+  width: 100%;
+}
+
+/* 入力フィールド - やや小さめに */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-sizing: border-box;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #00aaff;
+  background-color: #fff;
+}
+
+/* ラベル */
+.floating-label label {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #aaa;
+  font-size: 16px;
+  transition: all 0.2s ease-out;
+  pointer-events: none;
+  background: #fff;
+  padding: 0 4px;
+}
+
+/* フォーカス時や入力済み時：もっと上に移動して重なり防止 */
+.floating-label input:focus + label,
+.floating-label input:not(:placeholder-shown) + label {
+  top: -2px;            
+  font-size: 12px;
+  color: #555;
+  background-color: white;
+}
+
+/* パスワード欄だけ少し上に上げる */
+#password {
+  margin-top: -4px; 
+}
+
+/* パスワード欄だけ上にあげた分、ラベルも調整 */
+#password + label {
+  top: calc(50% - 4px);
+}
+
+/* パスワード欄の入力 or フォーカス時のラベル位置補正 */
+#password:focus + label,
+#password:not(:placeholder-shown) + label {
+  top: -6px;
+}
+
+/* ログインボタン - 少し小さく */
+.login-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 15px;
+  background-color: #ff9900;
+  border: none;
+  border-radius: 8px;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.login-button:hover {
+  background-color: #ff7700;
+}
+
+/* エラーメッセージ */
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-top: -4px; 
+  margin-bottom: 10px;
+  text-align: center;
+}
+
+/* 無効化されたボタンのスタイル */
+button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  opacity: 0.7;
+  pointer-events: none;
+}
