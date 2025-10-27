@@ -31,3 +31,16 @@ build/
 
 ### VS Code ###
 .vscode/
+
+# === ログ / 一時ファイル ===
+*.log
+logs/
+
+# === OS固有ファイル ===
+.DS_Store
+Thumbs.db
+
+# === 環境変数ファイル ===
+.env
+application-local.properties
+application-dev.properties
