@@ -11,7 +11,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 public class WebConfig implements WebMvcConfigurer {
 
     /** フロントエンドの許可するオリジン */
-    private static final String[] ALLOWED_ORIGINS = { "http://localhost:9090", "http://localhost:4200" };
+    private static final String[] ALLOWED_ORIGINS = { "http://localhost:9090" };
 
     /** 許可するHTTPメソッド */
     private static final String[] ALLOWED_METHODS = { "GET", "POST", "PUT", "DELETE" };

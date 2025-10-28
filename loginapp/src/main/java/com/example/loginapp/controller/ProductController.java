@@ -1,76 +1,57 @@
 package com.example.loginapp.controller;
 
+import com.example.loginapp.aspect.SessionRequired;
+import com.example.loginapp.dto.ErrorResponse;
 import com.example.loginapp.entity.Product;
 import com.example.loginapp.mapper.ProductMapper;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 商品情報を管理するコントローラークラス。
- * <p>
- * ログイン済みユーザーのみがアクセス可能です。
  */
-@CrossOrigin(origins = { "http://localhost:9090", "http://localhost:4200" }, allowCredentials = "true")
+@CrossOrigin(origins = "http://localhost:9090", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor
 public class ProductController {
 
-    /** 商品データアクセスを行うマッパー */
     private final ProductMapper productMapper;
 
     /**
      * 商品一覧を取得する。
-     * <p>
-     * ログイン済みでない場合はエラーを返す。
-     * </p>
      *
-     * @param session HTTPセッション
-     * @return 商品一覧またはエラーメッセージ
+     * @param session HttpSession
+     * @return ログインしていれば商品一覧、未ログインならエラー
      */
     @GetMapping
-    public ResponseEntity<Object> getProducts(HttpSession session) {
-        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
-
-        if (Boolean.TRUE.equals(isLoggedIn)) {
-            List<Product> products = productMapper.findAll();
-            return ResponseEntity.ok(products);
-        } else {
-            return ResponseEntity.status(401)
-                    .body(Map.of("error", "未ログインです"));
-        }
+    @SessionRequired
+    public ResponseEntity<List<Product>> getProducts(HttpSession session) {
+        List<Product> products = productMapper.findAll();
+        return ResponseEntity.ok(products);
     }
 
     /**
-     * 商品IDを指定して商品情報を取得する。
-     * <p>
-     * ログイン済みでない場合はエラーを返す。
-     * </p>
+     * 商品ID指定で商品情報を取得する。
      *
      * @param id      商品ID
-     * @param session HTTPセッション
+     * @param session HttpSession
      * @return 商品情報またはエラーメッセージ
      */
     @GetMapping("/{id}")
+    @SessionRequired
     public ResponseEntity<Object> getProductById(@PathVariable int id, HttpSession session) {
-        Boolean isLoggedIn = (Boolean) session.getAttribute("isLoggedIn");
-
-        if (Boolean.TRUE.equals(isLoggedIn)) {
-            Product product = productMapper.findById(id);
-            if (product != null) {
-                return ResponseEntity.ok(product);
-            } else {
-                return ResponseEntity.status(404)
-                        .body(Map.of("error", "指定された商品が見つかりません"));
-            }
+        Product product = productMapper.findById(id);
+        if (product != null) {
+            return ResponseEntity.ok(product);
         } else {
-            return ResponseEntity.status(401)
-                    .body(Map.of("error", "未ログインです"));
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse("指定された商品が見つかりません"));
         }
     }
 }

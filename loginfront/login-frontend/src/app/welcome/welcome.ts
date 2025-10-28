@@ -14,7 +14,7 @@ interface Product {
 }
 
 /**
- * ようこそ画面コンポーネント。
+ * ログイン完了画面コンポーネント。
  * <p>
  * ログイン済みユーザーに対してセッション確認と商品一覧表示を行う。
  * </p>
@@ -38,6 +38,23 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     LOGOUT: 'http://localhost:8080/api/logout'
   };
 
+  /** HTTPステータスコード */
+  private static readonly HTTP_STATUS = {
+    UNAUTHORIZED: 401
+  };
+
+  /** ルートパス */
+  private static readonly ROUTES = {
+    LOGIN: '/login'
+  };
+
+  /** メッセージ定数 */
+  private static readonly MESSAGES = {
+    SESSION_EXPIRED: 'セッションの有効期限が切れました。再ログインしてください。',
+    LOGOUT_FAILED: 'ログアウトに失敗しました。',
+    FETCH_PRODUCTS_FAILED: '商品情報の取得に失敗しました'
+  };
+
   /** セッションチェック用の購読オブジェクト */
   private sessionCheckSubscription?: Subscription;
 
@@ -58,15 +75,11 @@ export class WelcomeComponent implements OnInit, OnDestroy {
    * </p>
    */
   ngOnInit(): void {
-    // 定期的にセッション状態を確認
     this.sessionCheckSubscription = interval(WelcomeComponent.SESSION_CHECK_INTERVAL_MS).subscribe(() => {
       this.checkSession();
     });
 
-    // 初回チェック
     this.checkSession();
-
-    // 商品一覧を取得
     this.fetchProducts();
   }
 
@@ -87,13 +100,11 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   checkSession(): void {
     this.http.get(WelcomeComponent.API_ENDPOINTS.SESSION_CHECK, { withCredentials: true })
       .subscribe({
-        next: () => {
-          console.log('セッション有効です');
-        },
+        next: () => console.log('セッション有効です'),
         error: (err) => {
-          if (err.status === 401) {
-            alert('セッションの有効期限が切れました。再ログインしてください。');
-            this.router.navigate(['/login']);
+          if (err.status === WelcomeComponent.HTTP_STATUS.UNAUTHORIZED) {
+            alert(WelcomeComponent.MESSAGES.SESSION_EXPIRED);
+            this.router.navigate([WelcomeComponent.ROUTES.LOGIN]);
           } else {
             console.error('セッションチェックでエラー', err);
           }
@@ -107,12 +118,8 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   fetchProducts(): void {
     this.http.get<Product[]>(WelcomeComponent.API_ENDPOINTS.PRODUCTS, { withCredentials: true })
       .subscribe({
-        next: (data) => {
-          this.products = data;
-        },
-        error: (err) => {
-          console.error('商品情報の取得に失敗しました', err);
-        }
+        next: (data) => this.products = data,
+        error: (err) => console.error(WelcomeComponent.MESSAGES.FETCH_PRODUCTS_FAILED, err)
       });
   }
 
@@ -120,13 +127,10 @@ export class WelcomeComponent implements OnInit, OnDestroy {
    * ログアウト処理を行う。
    */
   logout(): void {
-    this.http.post(WelcomeComponent.API_ENDPOINTS.LOGOUT, {}, { withCredentials: true }).subscribe({
-      next: () => {
-        this.router.navigate(['/login']);
-      },
-      error: () => {
-        alert('ログアウトに失敗しました。');
-      }
-    });
+    this.http.post(WelcomeComponent.API_ENDPOINTS.LOGOUT, {}, { withCredentials: true })
+      .subscribe({
+        next: () => this.router.navigate([WelcomeComponent.ROUTES.LOGIN]),
+        error: () => alert(WelcomeComponent.MESSAGES.LOGOUT_FAILED)
+      });
   }
 }

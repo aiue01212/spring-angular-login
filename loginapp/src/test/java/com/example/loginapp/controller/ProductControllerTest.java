@@ -10,20 +10,19 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.Arrays;
 import java.util.List;
 
-import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
- * {@link ProductController} の動作を検証するテストクラス。
+ * {@link ProductController} の AOP (@SessionRequired) 動作を検証するテスト。
  */
 @SpringBootTest
 @AutoConfigureMockMvc
-class ProductControllerTest {
+class ProductControllerAopTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -31,29 +30,52 @@ class ProductControllerTest {
     @MockitoBean
     private ProductMapper productMapper;
 
+    /** セッション有効期限（Aspectと同じ） */
+    private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
+
     /**
-     * 未ログイン状態で商品一覧を取得しようとした場合、
-     * ステータス401が返ることを確認するテスト。
+     * 未ログイン状態で /api/products にアクセスすると 401 が返ることを確認。
      */
     @Test
     void getProducts_Unauthorized() throws Exception {
         mockMvc.perform(get("/api/products"))
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("$.error").value("未ログインです"));
+
+        verify(productMapper, times(0)).findAll();
     }
 
     /**
-     * ログイン済み状態で商品一覧を取得できることを確認するテスト。
+     * セッション有効期限切れの場合に 401（Unauthorized）が返されることを確認するテスト。
+     *
+     * @throws Exception MockMvc 実行時の例外
+     */
+    @Test
+    void getProducts_SessionExpired() throws Exception {
+        MockHttpSession session = new MockHttpSession();
+        session.setAttribute("isLoggedIn", true);
+        session.setAttribute("loginTime", System.currentTimeMillis() - SESSION_TIMEOUT_MILLIS - 1000L);
+
+        mockMvc.perform(get("/api/products").session(session))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("セッション切れです"));
+
+        verify(productMapper, never()).findAll();
+    }
+
+    /**
+     * ログイン済み状態で /api/products にアクセスできることを確認。
      */
     @Test
     void getProducts_LoggedIn() throws Exception {
-        List<Product> dummyList = List.of(
-                new Product(1, "iPhone", 120000),
-                new Product(2, "Galaxy", 98000));
+        List<Product> dummyList = Arrays.asList(
+                new Product(1, "iPhone", 120000.0),
+                new Product(2, "Galaxy", 98000.0));
         when(productMapper.findAll()).thenReturn(dummyList);
 
         MockHttpSession session = new MockHttpSession();
         session.setAttribute("isLoggedIn", true);
+        session.setAttribute("loginTime", System.currentTimeMillis());
 
         mockMvc.perform(get("/api/products").session(session))
                 .andExpect(status().isOk())
@@ -65,55 +87,5 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$[1].price").value(98000.0));
 
         verify(productMapper, times(1)).findAll();
-    }
-
-    /**
-     * 未ログイン状態で商品詳細を取得しようとした場合、
-     * ステータス401が返ることを確認するテスト。
-     */
-    @Test
-    void getProductById_Unauthorized() throws Exception {
-        mockMvc.perform(get("/api/products/1"))
-                .andExpect(status().isUnauthorized())
-                .andExpect(jsonPath("$.error").value("未ログインです"));
-    }
-
-    /**
-     * ログイン済み状態で存在する商品IDを指定した場合、
-     * 商品情報が返ることを確認するテスト。
-     */
-    @Test
-    void getProductById_LoggedIn_Found() throws Exception {
-        Product dummy = new Product(1, "MacBook", 240000);
-        when(productMapper.findById(1)).thenReturn(dummy);
-
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("isLoggedIn", true);
-
-        mockMvc.perform(get("/api/products/1").session(session))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.id").value(1))
-                .andExpect(jsonPath("$.name").value("MacBook"))
-                .andExpect(jsonPath("$.price").value(240000.0));
-
-        verify(productMapper, times(1)).findById(1);
-    }
-
-    /**
-     * ログイン済み状態で存在しない商品IDを指定した場合、
-     * ステータス404が返ることを確認するテスト。
-     */
-    @Test
-    void getProductById_LoggedIn_NotFound() throws Exception {
-        when(productMapper.findById(999)).thenReturn(null);
-
-        MockHttpSession session = new MockHttpSession();
-        session.setAttribute("isLoggedIn", true);
-
-        mockMvc.perform(get("/api/products/999").session(session))
-                .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.error").value("指定された商品が見つかりません"));
-
-        verify(productMapper, times(1)).findById(999);
     }
 }

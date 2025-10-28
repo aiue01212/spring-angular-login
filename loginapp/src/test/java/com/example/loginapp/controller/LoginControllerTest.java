@@ -10,7 +10,8 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 /**
@@ -26,6 +27,9 @@ class LoginControllerTest {
         @Autowired
         private ObjectMapper objectMapper;
 
+        /** セッション有効期限（Aspectと同じ） */
+        private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
+
         /**
          * 正常なログイン処理を確認するテスト。
          */
@@ -35,11 +39,10 @@ class LoginControllerTest {
                 request.setUsername("user");
                 request.setPassword("pass");
 
-                mockMvc.perform(
-                                post("/api/login")
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(objectMapper.writeValueAsString(request))
-                                                .session(new MockHttpSession()))
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .session(new MockHttpSession()))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.message").value("ログインに成功しました"));
         }
@@ -53,10 +56,9 @@ class LoginControllerTest {
                 request.setUsername("user");
                 request.setPassword("wrong");
 
-                mockMvc.perform(
-                                post("/api/login")
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(objectMapper.writeValueAsString(request)))
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.error").value("ユーザIDまたはパスワードが違います"));
         }
@@ -70,10 +72,9 @@ class LoginControllerTest {
                 request.setUsername("error");
                 request.setPassword("pass");
 
-                mockMvc.perform(
-                                post("/api/login")
-                                                .contentType(MediaType.APPLICATION_JSON)
-                                                .content(objectMapper.writeValueAsString(request)))
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isInternalServerError());
         }
 
@@ -82,33 +83,39 @@ class LoginControllerTest {
          */
         @Test
         void logoutTest() throws Exception {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute("isLoggedIn", true);
+
                 mockMvc.perform(post("/api/logout")
-                                .session(new MockHttpSession()))
+                                .session(session))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.message").value("ログアウトしました"));
         }
 
         /**
-         * セッション未ログイン時の動作を確認するテスト。
+         * セッションが期限切れの場合、401が返ることを確認。
          */
         @Test
-        void sessionCheck_Unauthorized() throws Exception {
-                mockMvc.perform(get("/api/session-check"))
+        void sessionExpiredTest() throws Exception {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute("isLoggedIn", true);
+                session.setAttribute("loginTime", System.currentTimeMillis() - SESSION_TIMEOUT_MILLIS - 5000L);
+
+                mockMvc.perform(get("/api/session-check").session(session))
                                 .andExpect(status().isUnauthorized())
-                                .andExpect(jsonPath("$.error").value("未ログインです"));
+                                .andExpect(jsonPath("$.error").value("セッション切れです"));
         }
 
         /**
-         * セッションログイン中の動作を確認するテスト。
+         * 有効なセッションでアクセスできることを確認。
          */
         @Test
-        void sessionCheck_LoggedIn() throws Exception {
+        void sessionActiveTest() throws Exception {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute("isLoggedIn", true);
                 session.setAttribute("loginTime", System.currentTimeMillis());
 
-                mockMvc.perform(get("/api/session-check")
-                                .session(session))
+                mockMvc.perform(get("/api/session-check").session(session))
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.message").value("ログイン中"));
         }

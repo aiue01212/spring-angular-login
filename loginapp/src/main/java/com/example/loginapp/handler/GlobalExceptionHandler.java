@@ -1,31 +1,27 @@
 package com.example.loginapp.handler;
 
+import com.example.loginapp.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-import java.util.Map;
-
 /**
- * アプリケーション全体で共通的に例外を処理するハンドラークラス。
+ * アプリケーション全体で共通的に例外を処理するグローバル例外ハンドラークラス。
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {
 
-    /** 内部サーバーエラーのHTTPステータスコード */
-    private static final HttpStatus INTERNAL_SERVER_ERROR = HttpStatus.INTERNAL_SERVER_ERROR;
-
     /**
-     * {@link RuntimeException} が発生した際に共通的なエラーレスポンスを返す。
+     * {@link RuntimeException} が発生した場合に共通的なエラーレスポンスを返す。
      *
      * @param ex 発生した実行時例外
-     * @return エラーメッセージを含むレスポンス
+     * @return エラーメッセージを含む {@link ResponseEntity<ErrorResponse>}
      */
     @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
-        return ResponseEntity
-                .status(INTERNAL_SERVER_ERROR)
-                .body(Map.of("error", ex.getMessage()));
+    public ResponseEntity<ErrorResponse> handleRuntimeException(RuntimeException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(errorResponse);
     }
 }

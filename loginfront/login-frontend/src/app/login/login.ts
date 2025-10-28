@@ -27,6 +27,27 @@ export class LoginComponent {
   /** 認証APIエンドポイント */
   private static readonly LOGIN_API_URL = 'http://localhost:8080/api/login';
 
+  /** HTTPステータスコード定数 */
+  private static readonly HTTP_STATUS = {
+    OK: 200,
+    BAD_REQUEST_MIN: 400,
+    BAD_REQUEST_MAX: 499,
+    SERVER_ERROR_MIN: 500
+  };
+
+  /** ナビゲーションルート */
+  private static readonly ROUTES = {
+    WELCOME: '/welcome',
+    LOGIN: '/login'
+  };
+
+  /** デフォルトエラーメッセージ */
+  private static readonly ERROR_MESSAGES = {
+    AUTH_FAILED: 'ユーザIDまたはパスワードが違います',
+    SERVER_ERROR: 'サーバー内部エラーが発生しました',
+    UNKNOWN: '不明なエラーが発生しました。'
+  };
+
   /**
    * コンストラクタ。
    * @param http HTTP通信クライアント
@@ -48,22 +69,21 @@ export class LoginComponent {
         withCredentials: true
       }).subscribe({
         next: (response) => {
-          if (response.status === 200) {
+          if (response.status === LoginComponent.HTTP_STATUS.OK) {
             this.errorMessage = '';
-            this.router.navigate(['/welcome']); // ログイン成功時にようこそ画面へ遷移
+            this.router.navigate([LoginComponent.ROUTES.WELCOME]);
           }
         },
         error: (error) => {
-          // ステータスコードに応じてエラーメッセージを設定
-          if (error.status >= 400 && error.status < 500) {
-            this.errorMessage = error.error?.error || 'ユーザIDまたはパスワードが違います';
-          } else if (error.status >= 500) {
-            this.errorMessage = error.error?.error || 'サーバー内部エラーが発生しました';
+          if (error.status >= LoginComponent.HTTP_STATUS.BAD_REQUEST_MIN &&
+              error.status < LoginComponent.HTTP_STATUS.BAD_REQUEST_MAX) {
+            this.errorMessage = error.error?.error || LoginComponent.ERROR_MESSAGES.AUTH_FAILED;
+          } else if (error.status >= LoginComponent.HTTP_STATUS.SERVER_ERROR_MIN) {
+            this.errorMessage = error.error?.error || LoginComponent.ERROR_MESSAGES.SERVER_ERROR;
           } else {
-            this.errorMessage = '不明なエラーが発生しました。';
+            this.errorMessage = LoginComponent.ERROR_MESSAGES.UNKNOWN;
           }
 
-          // フォーム状態をリセット
           form.form.markAsPristine();
           form.form.markAsUntouched();
           form.form.updateValueAndValidity();
