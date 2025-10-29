@@ -116,11 +116,11 @@ export class WelcomeComponent implements OnInit, OnDestroy {
    * 商品一覧を取得する。
    */
   fetchProducts(): void {
-    this.http.get<Product[]>(WelcomeComponent.API_ENDPOINTS.PRODUCTS, { withCredentials: true })
-      .subscribe({
-        next: (data) => this.products = data,
-        error: (err) => console.error(WelcomeComponent.MESSAGES.FETCH_PRODUCTS_FAILED, err)
-      });
+    this.http.get<{ products: Product[] }>(WelcomeComponent.API_ENDPOINTS.PRODUCTS, { withCredentials: true })
+    .subscribe({
+      next: (data) => this.products = data.products,
+      error: (err) => console.error('取得失敗', err)
+    });
   }
 
   /**
