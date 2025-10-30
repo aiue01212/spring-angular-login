@@ -8,6 +8,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpSession;
 
@@ -16,6 +17,8 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
+import static com.example.loginapp.constants.MessageKeys.*;
+import static com.example.loginapp.constants.SessionKeys.*;
 
 /**
  * {@link SessionCheckAspect} の動作を検証する単体テスト。
@@ -32,15 +35,16 @@ class SessionCheckAspectTest {
         /** セッション有効期限 */
         private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
 
-        // メッセージコード定数
-        private static final String CODE_NOT_LOGGED_IN = "error.notLoggedIn";
-        private static final String CODE_SESSION_EXPIRED = "error.sessionExpired";
-        private static final String CODE_SUCCESS_PROCESS = "success.process";
+        /** タイムアウト検証用：有効期限を超過させる時間（2分 = 120_000ms） */
+        private static final long EXPIRED_SESSION_OFFSET_MILLIS = SESSION_TIMEOUT_MILLIS * 2;
 
-        // メッセージ文字列定数
+        /** joinPoint.proceed() の呼び出し回数（正常系のみ1回） */
+        private static final int EXPECTED_PROCEED_INVOCATION_COUNT = 1;
+
         private static final String MSG_NOT_LOGGED_IN = "ログインしていません";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_SUCCESS_PROCESS = "成功しました";
+        private static final String MSG_OK = "OK";
 
         @BeforeEach
         void setUp() {
@@ -49,12 +53,11 @@ class SessionCheckAspectTest {
                 sessionProperties.setTimeoutMillis(SESSION_TIMEOUT_MILLIS);
                 aspect = new SessionCheckAspect(messageSource, sessionProperties);
 
-                // 共通メッセージモックを定数で設定
-                when(messageSource.getMessage(eq(CODE_NOT_LOGGED_IN), any(), any(Locale.class)))
+                when(messageSource.getMessage(eq(ERROR_NOT_LOGGED_IN), any(), any(Locale.class)))
                                 .thenReturn(MSG_NOT_LOGGED_IN);
-                when(messageSource.getMessage(eq(CODE_SESSION_EXPIRED), any(), any(Locale.class)))
+                when(messageSource.getMessage(eq(ERROR_SESSION_EXPIRED), any(), any(Locale.class)))
                                 .thenReturn(MSG_SESSION_EXPIRED);
-                when(messageSource.getMessage(eq(CODE_SUCCESS_PROCESS), any(), any(Locale.class)))
+                when(messageSource.getMessage(eq(SUCCESS_PROCESS), any(), any(Locale.class)))
                                 .thenReturn(MSG_SUCCESS_PROCESS);
         }
 
@@ -65,16 +68,14 @@ class SessionCheckAspectTest {
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
 
-                // joinPoint に HttpSession を引数として設定
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session });
 
-                // @SuppressWarnings("unchecked")
                 ResponseEntity<SessionCheckResponse> response = (ResponseEntity<SessionCheckResponse>) aspect
                                 .checkSession(joinPoint, sessionRequired);
 
-                assertEquals(401, response.getStatusCode().value());
+                assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
                 assertTrue(response.getBody() instanceof ErrorResponse);
-                assertEquals("ログインしていません", ((ErrorResponse) response.getBody()).getError());
+                assertEquals(MSG_NOT_LOGGED_IN, ((ErrorResponse) response.getBody()).getError());
 
                 verify(joinPoint, never()).proceed();
         }
@@ -83,20 +84,19 @@ class SessionCheckAspectTest {
         @Test
         void testSessionExpired() throws Throwable {
                 MockHttpSession session = new MockHttpSession();
-                session.setAttribute("isLoggedIn", true);
-                session.setAttribute("loginTime", System.currentTimeMillis() - 120_000); // 2分前
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis() - EXPIRED_SESSION_OFFSET_MILLIS);
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
 
-                // joinPoint に HttpSession を引数として設定
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session });
 
                 ResponseEntity<SessionCheckResponse> response = (ResponseEntity<SessionCheckResponse>) aspect
                                 .checkSession(joinPoint, sessionRequired);
 
-                assertEquals(401, response.getStatusCode().value());
+                assertEquals(HttpStatus.UNAUTHORIZED.value(), response.getStatusCode().value());
                 assertTrue(response.getBody() instanceof ErrorResponse);
-                assertEquals("セッションがタイムアウトしました",
+                assertEquals(MSG_SESSION_EXPIRED,
                                 ((ErrorResponse) response.getBody()).getError());
 
                 verify(joinPoint, never()).proceed();
@@ -106,24 +106,22 @@ class SessionCheckAspectTest {
         @Test
         void testValidSession() throws Throwable {
                 MockHttpSession session = new MockHttpSession();
-                session.setAttribute("isLoggedIn", true);
-                session.setAttribute("loginTime", System.currentTimeMillis());
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
 
-                // joinPoint に HttpSession と Locale を設定
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
 
-                // proceed() の戻り値をモック
-                when(joinPoint.proceed()).thenReturn(ResponseEntity.ok(new SuccessResponse("OK")));
+                when(joinPoint.proceed()).thenReturn(ResponseEntity.ok(new SuccessResponse(MSG_OK)));
 
                 ResponseEntity<SessionCheckResponse> response = (ResponseEntity<SessionCheckResponse>) aspect
                                 .checkSession(joinPoint, sessionRequired);
 
-                assertEquals(200, response.getStatusCode().value());
+                assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
                 assertTrue(response.getBody() instanceof SuccessResponse);
-                assertEquals("OK", ((SuccessResponse) response.getBody()).getMessage());
+                assertEquals(MSG_OK, ((SuccessResponse) response.getBody()).getMessage());
 
-                verify(joinPoint, times(1)).proceed();
+                verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
         }
 }

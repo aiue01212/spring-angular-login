@@ -1,14 +1,24 @@
 package com.example.loginapp.controller;
 
-import com.example.loginapp.aspect.SessionRequired;
-import com.example.loginapp.dto.ApiResponse;
+import com.example.loginapp.dto.SuccessResponse;
+import com.example.loginapp.aop.SessionRequired;
 import com.example.loginapp.dto.ErrorResponse;
 import com.example.loginapp.dto.LoginRequest;
+import com.example.loginapp.dto.SessionCheckResponse;
+import com.example.loginapp.entity.User;
+import com.example.loginapp.service.UserService;
+
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.context.MessageSource;
+
+import static com.example.loginapp.constants.MessageKeys.*;
+import static com.example.loginapp.constants.SessionKeys.*;
+
+import java.util.Locale;
 
 /**
  * ログイン・ログアウトおよびセッション確認を行うコントローラー。
@@ -19,37 +29,48 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class LoginController {
 
-    /** セッションキー: ログイン状態 */
-    private static final String KEY_IS_LOGGED_IN = "isLoggedIn";
-    /** セッションキー: ユーザー名 */
-    private static final String KEY_USERNAME = "username";
-    /** セッションキー: ログイン時間 */
-    private static final String KEY_LOGIN_TIME = "loginTime";
+    /** メッセージソース */
+    private final MessageSource messageSource;
+
+    /** ユーザサービス */
+    private final UserService userService;
 
     /**
      * ログイン処理を行う。
      *
      * @param request ログイン情報
      * @param session HttpSession
+     * @param locale  ロケール情報
      * @return 成功時はログイン成功メッセージ、失敗時はエラーメッセージ
      */
     @PostMapping("/login")
-    public ResponseEntity<Object> login(@RequestBody LoginRequest request, HttpSession session) {
+    public ResponseEntity<SessionCheckResponse> login(@RequestBody LoginRequest request, HttpSession session,
+            Locale locale) {
 
-        // テスト用の意図的なエラー
-        if ("error".equals(request.getUsername())) {
-            throw new RuntimeException("サーバー内部エラーが発生しました");
-        }
+        try {
+            User user = userService.findUser(request.getUsername());
 
-        // 認証ロジック
-        if ("user".equals(request.getUsername()) && "pass".equals(request.getPassword())) {
-            session.setAttribute(KEY_IS_LOGGED_IN, true);
-            session.setAttribute(KEY_USERNAME, request.getUsername());
-            session.setAttribute(KEY_LOGIN_TIME, System.currentTimeMillis());
-            return ResponseEntity.ok(new ApiResponse("ログインに成功しました"));
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new ErrorResponse("ユーザIDまたはパスワードが違います"));
+            if (user == null) {
+                String msg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(msg));
+            }
+
+            if (!user.getPassword().equals(request.getPassword())) {
+                String msg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(msg));
+            }
+
+            session.setAttribute(IS_LOGGED_IN, true);
+            session.setAttribute(USERNAME, user.getUsername());
+            session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+            String msg = messageSource.getMessage(SUCCESS_LOGIN, null, locale);
+            return ResponseEntity.ok(new SuccessResponse(msg));
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            String msg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(msg));
         }
     }
 
@@ -57,23 +78,27 @@ public class LoginController {
      * ログアウト処理を行う。
      *
      * @param session HttpSession
+     * @param locale  ロケール情報
      * @return ログアウト完了メッセージ
      */
     @PostMapping("/logout")
-    public ResponseEntity<Object> logout(HttpSession session) {
+    public ResponseEntity<SuccessResponse> logout(HttpSession session, Locale locale) {
         session.invalidate();
-        return ResponseEntity.ok(new ApiResponse("ログアウトしました"));
+        String msg = messageSource.getMessage(SUCCESS_LOGOUT, null, locale);
+        return ResponseEntity.ok(new SuccessResponse(msg));
     }
 
     /**
      * セッション状態を確認する。
      *
      * @param session HttpSession
+     * @param locale  ロケール情報
      * @return ログイン中であれば成功メッセージ、未ログインまたはセッション切れの場合はエラーメッセージ
      */
     @GetMapping("/session-check")
     @SessionRequired
-    public ResponseEntity<Object> sessionCheck(HttpSession session) {
-        return ResponseEntity.ok(new ApiResponse("ログイン中"));
+    public ResponseEntity<SuccessResponse> sessionCheck(HttpSession session, Locale locale) {
+        String msg = messageSource.getMessage(SUCCESS_SESSION_CHECK, null, locale);
+        return ResponseEntity.ok(new SuccessResponse(msg));
     }
 }

@@ -16,10 +16,13 @@ public final class MessageKeys {
     public static final String ERROR_INTERNAL_SERVER = "error.internalServerError";
     public static final String ERROR_PRODUCT_NOT_FOUND = "error.productNotFound";
     public static final String ERROR_MISSING_HTTP_SESSION = "error.missingHttpSession";
+    public static final String ERROR_ROLLBACK_OCCURRED = "error.rollbackOccurred";
+    public static final String ERROR_ROLLBACK_TEST = "error.rollbackTest";
 
     // 成功メッセージ
     public static final String SUCCESS_LOGIN = "success.login";
     public static final String SUCCESS_LOGOUT = "success.logout";
     public static final String SUCCESS_PROCESS = "success.process";
     public static final String SUCCESS_SESSION_CHECK = "success.sessionCheck";
+    public static final String SUCCESS_UPDATE_WITH_ROLLBACK = "success.updateWithRollback";
 }
