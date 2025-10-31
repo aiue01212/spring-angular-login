@@ -18,6 +18,7 @@ public final class MessageKeys {
     public static final String ERROR_MISSING_HTTP_SESSION = "error.missingHttpSession";
     public static final String ERROR_ROLLBACK_OCCURRED = "error.rollbackOccurred";
     public static final String ERROR_ROLLBACK_TEST = "error.rollbackTest";
+    public static final String ERROR_NEGATIVE_SESSION_TIMEOUT = "error.negativeSessionTimeout";
 
     // 成功メッセージ
     public static final String SUCCESS_LOGIN = "success.login";

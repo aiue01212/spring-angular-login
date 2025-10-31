@@ -45,6 +45,8 @@ class SessionCheckAspectTest {
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_SUCCESS_PROCESS = "成功しました";
         private static final String MSG_OK = "OK";
+        private static final String MSG_SESSION_NOEXIT = "セッションが存在しません";
+        private static final String MSG_NON_RESPONSE_ENTITY_RESULT = "非ResponseEntityの結果";
 
         @BeforeEach
         void setUp() {
@@ -121,6 +123,68 @@ class SessionCheckAspectTest {
                 assertEquals(HttpStatus.OK.value(), response.getStatusCode().value());
                 assertTrue(response.getBody() instanceof SuccessResponse);
                 assertEquals(MSG_OK, ((SuccessResponse) response.getBody()).getMessage());
+
+                verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
+        }
+
+        /** session が null の場合、IllegalStateException が送出されることを確認 */
+        @Test
+        void testMissingHttpSession() throws Throwable {
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                SessionRequired sessionRequired = mock(SessionRequired.class);
+                Locale locale = Locale.JAPANESE;
+
+                when(joinPoint.getArgs()).thenReturn(new Object[] { locale });
+                when(messageSource.getMessage(eq(ERROR_MISSING_HTTP_SESSION), any(), eq(locale)))
+                                .thenReturn(MSG_SESSION_NOEXIT);
+
+                IllegalStateException thrown = assertThrows(IllegalStateException.class,
+                                () -> aspect.checkSession(joinPoint, sessionRequired));
+
+                assertEquals(MSG_SESSION_NOEXIT, thrown.getMessage());
+                verify(joinPoint, never()).proceed();
+        }
+
+        /** isLoggedIn は true だが loginTime が null の場合、401 が返ることを確認 */
+        @Test
+        void testLoginTimeMissing() throws Throwable {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session });
+                when(messageSource.getMessage(eq(ERROR_NOT_LOGGED_IN), any(), any(Locale.class)))
+                                .thenReturn(MSG_NOT_LOGGED_IN);
+
+                ResponseEntity<SessionCheckResponse> response = aspect.checkSession(joinPoint, sessionRequired);
+
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+                assertTrue(response.getBody() instanceof ErrorResponse);
+                assertEquals(MSG_NOT_LOGGED_IN, ((ErrorResponse) response.getBody()).getError());
+                verify(joinPoint, never()).proceed();
+        }
+
+        /** joinPoint.proceed() が ResponseEntity 以外を返す場合、SUCCESS_PROCESS が返ることを確認 */
+        @Test
+        void testProceedReturnsNonResponseEntity() throws Throwable {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
+                when(joinPoint.proceed()).thenReturn(MSG_NON_RESPONSE_ENTITY_RESULT);
+                when(messageSource.getMessage(eq(SUCCESS_PROCESS), any(), any(Locale.class)))
+                                .thenReturn(MSG_SUCCESS_PROCESS);
+
+                ResponseEntity<SessionCheckResponse> response = aspect.checkSession(joinPoint, sessionRequired);
+
+                assertEquals(HttpStatus.OK, response.getStatusCode());
+                assertTrue(response.getBody() instanceof SuccessResponse);
+                assertEquals(MSG_SUCCESS_PROCESS, ((SuccessResponse) response.getBody()).getMessage());
 
                 verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
         }

@@ -1,18 +1,24 @@
 package com.example.loginapp.controller;
 
 import com.example.loginapp.dto.LoginRequest;
+import com.example.loginapp.service.UserService;
+import com.example.loginapp.entity.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+
 import static com.example.loginapp.constants.SessionKeys.*;
 
 /**
@@ -28,6 +34,9 @@ class LoginControllerTest {
         @Autowired
         private ObjectMapper objectMapper;
 
+        @MockitoBean
+        private UserService userService;
+
         /** セッション有効期限 */
         private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
 
@@ -39,6 +48,8 @@ class LoginControllerTest {
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_SESSION_ACTIVE = "ログイン中";
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
+        private static final String MSG_INTERNAL_ERROR = "サーバー内部エラーが発生しました";
+        private static final String MSG_DB_ERROR = "DB接続エラー";
 
         /**
          * 正常なログイン処理を確認するテスト。
@@ -48,6 +59,12 @@ class LoginControllerTest {
                 LoginRequest request = new LoginRequest();
                 request.setUsername("user");
                 request.setPassword("pass");
+
+                User mockUser = new User();
+                mockUser.setUsername("user");
+                mockUser.setPassword("pass");
+
+                when(userService.findUser("user")).thenReturn(mockUser);
 
                 mockMvc.perform(post("/api/login")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -131,5 +148,67 @@ class LoginControllerTest {
                                 .header("Accept-Language", "ja"))
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_NOT_LOGGED_IN));
+        }
+
+        /**
+         * user == null の場合（ユーザーが存在しない）の分岐をテスト。
+         */
+        @Test
+        void loginUserNotFoundTest() throws Exception {
+                LoginRequest request = new LoginRequest();
+                request.setUsername("no_user");
+                request.setPassword("any");
+
+                when(userService.findUser("no_user")).thenReturn(null);
+
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .header("Accept-Language", "ja"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.error").value(MSG_INVALID_CREDENTIALS));
+        }
+
+        /**
+         * ユーザーは存在するがパスワードが一致しない場合の分岐をテスト。
+         */
+        @Test
+        void loginPasswordMismatchTest() throws Exception {
+                LoginRequest request = new LoginRequest();
+                request.setUsername("user");
+                request.setPassword("wrong_password");
+
+                User mockUser = new User();
+                mockUser.setUsername("user");
+                mockUser.setPassword("correct_password");
+
+                when(userService.findUser("user")).thenReturn(mockUser);
+
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .header("Accept-Language", "ja"))
+                                .andExpect(status().isBadRequest())
+                                .andExpect(jsonPath("$.error").value(MSG_INVALID_CREDENTIALS));
+        }
+
+        /**
+         * findUser() が例外を投げた場合の catch (Exception e) 分岐をテスト。
+         */
+        @Test
+        void loginInternalServerErrorTest() throws Exception {
+                LoginRequest request = new LoginRequest();
+                request.setUsername("error_user");
+                request.setPassword("pass");
+
+                when(userService.findUser("error_user"))
+                                .thenThrow(new RuntimeException(MSG_DB_ERROR));
+
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .header("Accept-Language", "ja"))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
         }
 }

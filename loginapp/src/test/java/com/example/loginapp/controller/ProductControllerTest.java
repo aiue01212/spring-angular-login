@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Locale;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -218,5 +219,28 @@ class ProductControllerTest {
                 verify(productService, times(EXPECTED_CALL_ONCE))
                                 .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
                                                 PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
+        }
+
+        /** rollback エンドポイントの成功パターン（例外なし）をテスト */
+        @Test
+        void updateTest_Success() throws Exception {
+                doNothing().when(productService)
+                                .updateTwoProductsWithRollback(anyInt(), anyDouble(), anyInt(), anyDouble());
+
+                when(messageSource.getMessage(eq(SUCCESS_UPDATE_WITH_ROLLBACK), any(), any(Locale.class)))
+                                .thenReturn(MSG_UPDATE_WITH_ROLLBACK);
+
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                mockMvc.perform(post("/api/products/update-test")
+                                .session(session)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isOk())
+                                .andExpect(jsonPath("$.error").value(MSG_UPDATE_WITH_ROLLBACK));
+
+                verify(productService, times(EXPECTED_CALL_ONCE))
+                                .updateTwoProductsWithRollback(anyInt(), anyDouble(), anyInt(), anyDouble());
         }
 }

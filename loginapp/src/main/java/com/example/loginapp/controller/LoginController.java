@@ -50,12 +50,7 @@ public class LoginController {
         try {
             User user = userService.findUser(request.getUsername());
 
-            if (user == null) {
-                String msg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(msg));
-            }
-
-            if (!user.getPassword().equals(request.getPassword())) {
+            if (user == null || !user.getPassword().equals(request.getPassword())) {
                 String msg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
                 return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(msg));
             }
