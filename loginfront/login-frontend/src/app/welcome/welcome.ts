@@ -52,7 +52,10 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   private static readonly MESSAGES = {
     SESSION_EXPIRED: 'セッションの有効期限が切れました。再ログインしてください。',
     LOGOUT_FAILED: 'ログアウトに失敗しました。',
-    FETCH_PRODUCTS_FAILED: '商品情報の取得に失敗しました'
+    FETCH_PRODUCTS_FAILED: '商品情報の取得に失敗しました',
+    SESSION_VALID: 'セッション有効です', 
+    SESSION_CHECK_ERROR: 'セッションチェックでエラー',
+    FETCH_FAILED: '商品情報の取得に失敗しました。'
   };
 
   /** セッションチェック用の購読オブジェクト */
@@ -100,13 +103,13 @@ export class WelcomeComponent implements OnInit, OnDestroy {
   checkSession(): void {
     this.http.get(WelcomeComponent.API_ENDPOINTS.SESSION_CHECK, { withCredentials: true })
       .subscribe({
-        next: () => console.log('セッション有効です'),
+        next: () => console.log(WelcomeComponent.MESSAGES.SESSION_VALID),
         error: (err) => {
           if (err.status === WelcomeComponent.HTTP_STATUS.UNAUTHORIZED) {
             alert(WelcomeComponent.MESSAGES.SESSION_EXPIRED);
             this.router.navigate([WelcomeComponent.ROUTES.LOGIN]);
           } else {
-            console.error('セッションチェックでエラー', err);
+            console.error(WelcomeComponent.MESSAGES.SESSION_CHECK_ERROR, err);
           }
         }
       });
@@ -119,7 +122,7 @@ export class WelcomeComponent implements OnInit, OnDestroy {
     this.http.get<{ products: Product[] }>(WelcomeComponent.API_ENDPOINTS.PRODUCTS, { withCredentials: true })
     .subscribe({
       next: (data) => this.products = data.products,
-      error: (err) => console.error('取得失敗', err)
+      error: (err) => console.error(WelcomeComponent.MESSAGES.FETCH_PRODUCTS_FAILED, err)
     });
   }
 
