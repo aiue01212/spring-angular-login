@@ -39,17 +39,17 @@ class LoginControllerTest {
 
         /** セッション有効期限 */
         private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
-
         private static final long SESSION_EXPIRED_OFFSET_MILLIS = 5000L;
 
+        /**
+         * テストや処理中に使用されるメッセージ定数をまとめた定義。
+         */
         private static final String MSG_SUCCESS_LOGIN = "ログインに成功しました";
         private static final String MSG_INVALID_CREDENTIALS = "ユーザIDまたはパスワードが違います";
         private static final String MSG_LOGOUT = "ログアウトしました";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_SESSION_ACTIVE = "ログイン中";
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
-        private static final String MSG_INTERNAL_ERROR = "サーバー内部エラーが発生しました";
-        private static final String MSG_DB_ERROR = "DB接続エラー";
 
         /**
          * 正常なログイン処理を確認するテスト。
@@ -190,25 +190,5 @@ class LoginControllerTest {
                                 .header("Accept-Language", "ja"))
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.error").value(MSG_INVALID_CREDENTIALS));
-        }
-
-        /**
-         * findUser() が例外を投げた場合の catch (Exception e) 分岐をテスト。
-         */
-        @Test
-        void loginInternalServerErrorTest() throws Exception {
-                LoginRequest request = new LoginRequest();
-                request.setUsername("error_user");
-                request.setPassword("pass");
-
-                when(userService.findUser("error_user"))
-                                .thenThrow(new RuntimeException(MSG_DB_ERROR));
-
-                mockMvc.perform(post("/api/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request))
-                                .header("Accept-Language", "ja"))
-                                .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
         }
 }

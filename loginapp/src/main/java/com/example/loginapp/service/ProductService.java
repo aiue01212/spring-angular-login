@@ -1,8 +1,10 @@
 package com.example.loginapp.service;
 
+import com.example.loginapp.entity.Product;
 import com.example.loginapp.mapper.ProductMapper;
 import lombok.RequiredArgsConstructor;
 
+import java.util.List;
 import java.util.Locale;
 
 import org.springframework.context.MessageSource;
@@ -15,8 +17,30 @@ import static com.example.loginapp.constants.MessageKeys.*;
 @RequiredArgsConstructor
 public class ProductService {
 
+    /** 商品データアクセス */
     private final ProductMapper productMapper;
+
+    /** メッセージリソース */
     private final MessageSource messageSource;
+
+    /**
+     * すべての商品を取得する。
+     *
+     * @return 商品リスト
+     */
+    public List<Product> getAllProducts() {
+        return productMapper.findAll();
+    }
+
+    /**
+     * 商品ID指定で商品を取得する。
+     *
+     * @param id 商品ID
+     * @return 商品情報、存在しなければ null
+     */
+    public Product getProductById(int id) {
+        return productMapper.findById(id);
+    }
 
     /**
      * 2つの商品の価格を更新するメソッド。

@@ -1,11 +1,10 @@
 package com.example.loginapp.controller;
 
-import com.example.loginapp.aop.SessionRequired;
 import com.example.loginapp.dto.ProductResponse;
+import com.example.loginapp.annotation.SessionRequired;
 import com.example.loginapp.dto.ErrorResponse;
 import com.example.loginapp.dto.SessionCheckResponse;
 import com.example.loginapp.entity.Product;
-import com.example.loginapp.mapper.ProductMapper;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.MessageSource;
 import lombok.RequiredArgsConstructor;
@@ -28,15 +27,11 @@ import java.util.Locale;
 @RequiredArgsConstructor
 public class ProductController {
 
-    /**
-     * 商品情報のデータアクセスを担当する Mapper。
-     */
-    private final ProductMapper productMapper;
+    /** 商品サービス */
+    private final ProductService productService;
 
     /** メッセージリソース */
     private final MessageSource messageSource;
-
-    private final ProductService productService;
 
     private static final int PRODUCT_ID_1 = 1;
     private static final int PRODUCT_ID_2 = 2;
@@ -53,7 +48,7 @@ public class ProductController {
     @GetMapping
     @SessionRequired
     public ResponseEntity<SessionCheckResponse> getProducts(HttpSession session, Locale locale) {
-        List<Product> products = productMapper.findAll();
+        List<Product> products = productService.getAllProducts();
         ProductResponse response = new ProductResponse(products);
         return ResponseEntity.ok(response);
     }
@@ -70,7 +65,7 @@ public class ProductController {
     @SessionRequired
     public ResponseEntity<SessionCheckResponse> getProductById(@PathVariable int id, HttpSession session,
             Locale locale) {
-        Product product = productMapper.findById(id);
+        Product product = productService.getProductById(id);
         if (product != null) {
             ProductResponse response = new ProductResponse(List.of(product));
             return ResponseEntity.ok(response);

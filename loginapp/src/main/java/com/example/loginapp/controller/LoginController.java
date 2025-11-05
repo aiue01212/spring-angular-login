@@ -1,7 +1,7 @@
 package com.example.loginapp.controller;
 
 import com.example.loginapp.dto.SuccessResponse;
-import com.example.loginapp.aop.SessionRequired;
+import com.example.loginapp.annotation.SessionRequired;
 import com.example.loginapp.dto.ErrorResponse;
 import com.example.loginapp.dto.LoginRequest;
 import com.example.loginapp.dto.SessionCheckResponse;
@@ -47,26 +47,19 @@ public class LoginController {
     public ResponseEntity<SessionCheckResponse> login(@RequestBody LoginRequest request, HttpSession session,
             Locale locale) {
 
-        try {
-            User user = userService.findUser(request.getUsername());
+        User user = userService.findUser(request.getUsername());
 
-            if (user == null || !user.getPassword().equals(request.getPassword())) {
-                String msg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(msg));
-            }
-
-            session.setAttribute(IS_LOGGED_IN, true);
-            session.setAttribute(USERNAME, user.getUsername());
-            session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
-
-            String msg = messageSource.getMessage(SUCCESS_LOGIN, null, locale);
-            return ResponseEntity.ok(new SuccessResponse(msg));
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            String msg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(msg));
+        if (user == null || !user.getPassword().equals(request.getPassword())) {
+            String msg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(msg));
         }
+
+        session.setAttribute(IS_LOGGED_IN, true);
+        session.setAttribute(USERNAME, user.getUsername());
+        session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+        String msg = messageSource.getMessage(SUCCESS_LOGIN, null, locale);
+        return ResponseEntity.ok(new SuccessResponse(msg));
     }
 
     /**

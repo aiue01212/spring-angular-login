@@ -13,10 +13,21 @@ public class UserService {
     @Autowired
     private UserMapper userMapper;
 
+    /**
+     * ユーザー名からユーザー情報を取得する。
+     *
+     * @param username ユーザー名
+     * @return ユーザー情報
+     */
     public User findUser(String username) {
         return userMapper.findByUsername(username);
     }
 
+    /**
+     * ユーザー登録を行う。
+     *
+     * @param user 登録するユーザー情報
+     */
     @Transactional
     public void registerUser(User user) {
         userMapper.insertUser(user);

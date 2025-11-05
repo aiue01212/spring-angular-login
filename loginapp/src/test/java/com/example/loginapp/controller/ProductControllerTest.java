@@ -1,7 +1,6 @@
 package com.example.loginapp.controller;
 
 import com.example.loginapp.entity.Product;
-import com.example.loginapp.mapper.ProductMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,16 +43,15 @@ class ProductControllerTest {
         private ProductService productService;
 
         @MockitoBean
-        private ProductMapper productMapper;
-
-        @MockitoBean
         private MessageSource messageSource;
 
         /** セッション有効期限 */
         private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
-
         private static final long SESSION_EXPIRED_OFFSET_MILLIS = 1_000L;
 
+        /**
+         * テストや処理中に使用されるメッセージ定数をまとめた定義。
+         */
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_SUCCESS_PROCESS = "処理成功";
@@ -97,7 +95,7 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_NOT_LOGGED_IN));
 
-                verify(productMapper, never()).findAll();
+                verify(productService, never()).getAllProducts();
         }
 
         /** セッション期限切れの場合 401 が返ることを確認 */
@@ -112,7 +110,7 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_SESSION_EXPIRED));
 
-                verify(productMapper, never()).findAll();
+                verify(productService, never()).getAllProducts();
         }
 
         /** ログイン済みで商品一覧を取得できることを確認 */
@@ -121,7 +119,7 @@ class ProductControllerTest {
                 List<Product> dummyList = Arrays.asList(
                                 new Product(PRODUCT_ID_IPHONE, "iPhone", PRICE_IPHONE),
                                 new Product(PRODUCT_ID_GALAXY, "Galaxy", PRICE_GALAXY));
-                when(productMapper.findAll()).thenReturn(dummyList);
+                when(productService.getAllProducts()).thenReturn(dummyList);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -136,7 +134,7 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.products[1].name").value("Galaxy"))
                                 .andExpect(jsonPath("$.products[1].price").value(PRICE_GALAXY));
 
-                verify(productMapper, times(EXPECTED_CALL_ONCE)).findAll();
+                verify(productService, times(EXPECTED_CALL_ONCE)).getAllProducts();
         }
 
         /** 未ログインで /api/products/{id} にアクセスすると 401 */
@@ -146,7 +144,7 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_NOT_LOGGED_IN));
 
-                verify(productMapper, never()).findById(anyInt());
+                verify(productService, never()).getProductById(anyInt());
         }
 
         /** セッション期限切れで /api/products/{id} にアクセスすると 401 */
@@ -161,14 +159,14 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_SESSION_EXPIRED));
 
-                verify(productMapper, never()).findById(anyInt());
+                verify(productService, never()).getProductById(anyInt());
         }
 
         /** ログイン済みで存在する商品を取得できることを確認 */
         @Test
         void getProductById_LoggedIn_Found() throws Exception {
                 Product product = new Product(PRODUCT_ID_IPHONE, "iPhone", PRICE_IPHONE);
-                when(productMapper.findById(PRODUCT_ID_IPHONE)).thenReturn(product);
+                when(productService.getProductById(PRODUCT_ID_IPHONE)).thenReturn(product);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -180,13 +178,13 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.products[0].name").value("iPhone"))
                                 .andExpect(jsonPath("$.products[0].price").value(PRICE_IPHONE));
 
-                verify(productMapper, times(EXPECTED_CALL_ONCE)).findById(PRODUCT_ID_IPHONE);
+                verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_IPHONE);
         }
 
         /** ログイン済みだが商品が存在しない場合 404 */
         @Test
         void getProductById_LoggedIn_NotFound() throws Exception {
-                when(productMapper.findById(PRODUCT_ID_NOT_FOUND)).thenReturn(null);
+                when(productService.getProductById(PRODUCT_ID_NOT_FOUND)).thenReturn(null);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -196,7 +194,7 @@ class ProductControllerTest {
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.error").value(MSG_PRODUCT_NOT_FOUND));
 
-                verify(productMapper, times(EXPECTED_CALL_ONCE)).findById(PRODUCT_ID_NOT_FOUND);
+                verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_NOT_FOUND);
         }
 
         /** rollback エンドポイントのテスト */
