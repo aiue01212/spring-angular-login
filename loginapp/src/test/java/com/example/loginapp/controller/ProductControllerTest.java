@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -60,6 +61,7 @@ class ProductControllerTest {
         private static final String MSG_UPDATE_WITH_ROLLBACK = "更新成功（ただし例外でロールバックされます）";
         private static final String MSG_ROLLBACK_OCCURRED = "更新中に例外が発生し、ロールバックされました: テスト用例外";
         private static final String MSG_TEST_EXCEPTION = "テスト用例外";
+        private static final String MSG_DB_CONNECTION_FAILED = "DB接続失敗";
 
         private static final int PRODUCT_ID_IPHONE = 1;
         private static final int PRODUCT_ID_GALAXY = 2;
@@ -240,5 +242,38 @@ class ProductControllerTest {
 
                 verify(productService, times(EXPECTED_CALL_ONCE))
                                 .updateTwoProductsWithRollback(anyInt(), anyDouble(), anyInt(), anyDouble());
+        }
+
+        /**
+         * ProductController の rollback 確認用エンドポイント
+         * "/api/products/update-test" に対して DataAccessException が発生した場合の
+         * 動作を確認するテスト。
+         */
+        @Test
+        void updateTest_DataAccessException() throws Exception {
+                doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
+                }).when(productService)
+                                .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
+                                                PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
+
+                String dbErrorMsg = messageSource.getMessage(ERROR_DATABASE_ACCESS,
+                                new Object[] { MSG_DB_CONNECTION_FAILED },
+                                Locale.getDefault());
+                String expectedErrorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED, new Object[] { dbErrorMsg },
+                                Locale.getDefault());
+
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                mockMvc.perform(post("/api/products/update-test")
+                                .session(session)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.error").value(expectedErrorMsg));
+
+                verify(productService, times(EXPECTED_CALL_ONCE))
+                                .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
+                                                PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
         }
 }

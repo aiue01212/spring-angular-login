@@ -7,6 +7,8 @@ import com.example.loginapp.dto.SessionCheckResponse;
 import com.example.loginapp.entity.Product;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataAccessException;
+
 import lombok.RequiredArgsConstructor;
 import com.example.loginapp.service.ProductService;
 
@@ -84,13 +86,20 @@ public class ProductController {
     public ResponseEntity<ErrorResponse> updateTest(HttpSession session, Locale locale) {
         try {
             productService.updateTwoProductsWithRollback(PRODUCT_ID_1, PRICE_PRODUCT_1, PRODUCT_ID_2, PRICE_PRODUCT_2);
-            String successMsg = messageSource.getMessage(SUCCESS_UPDATE_WITH_ROLLBACK, null, locale);
-            return ResponseEntity.ok(new ErrorResponse(successMsg));
-        } catch (Exception e) {
+        } catch (DataAccessException e) {
+            String dbErrorMsg = messageSource.getMessage(ERROR_DATABASE_ACCESS, new Object[] { e.getMessage() },
+                    locale);
+            String errorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED, new Object[] { dbErrorMsg }, locale);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(new ErrorResponse(errorMsg));
+        } catch (RuntimeException e) {
             String errorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED,
                     new Object[] { e.getMessage() }, locale);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(new ErrorResponse(errorMsg));
         }
+
+        String successMsg = messageSource.getMessage(SUCCESS_UPDATE_WITH_ROLLBACK, null, locale);
+        return ResponseEntity.ok(new ErrorResponse(successMsg));
     }
 }
