@@ -1,7 +1,8 @@
-package com.example.loginapp.service;
+package com.example.loginapp.domain.service;
 
-import com.example.loginapp.entity.Product;
-import com.example.loginapp.mapper.ProductMapper;
+import com.example.loginapp.domain.entity.Product;
+import com.example.loginapp.domain.mapper.ProductMapper;
+
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;

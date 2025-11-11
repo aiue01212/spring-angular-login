@@ -1,10 +1,11 @@
-package com.example.loginapp.dto;
+package com.example.loginapp.rest.model;
 
-import com.example.loginapp.entity.Product;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 import java.util.List;
+
+import com.example.loginapp.domain.entity.Product;
 
 /**
  * 商品取得レスポンス（成功時のみ使用）

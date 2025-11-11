@@ -10,7 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
  * 正常に初期化・起動できるかを検証します。
  * </p>
  */
-@SpringBootTest
+@SpringBootTest(classes = LoginappApplication.class)
 class LoginappApplicationTests {
 
 	/**

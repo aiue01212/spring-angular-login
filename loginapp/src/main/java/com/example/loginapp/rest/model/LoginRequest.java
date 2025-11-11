@@ -1,4 +1,4 @@
-package com.example.loginapp.dto;
+package com.example.loginapp.rest.model;
 
 import lombok.Data;
 

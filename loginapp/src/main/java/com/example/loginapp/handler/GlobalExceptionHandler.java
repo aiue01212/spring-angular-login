@@ -1,10 +1,11 @@
 package com.example.loginapp.handler;
 
-import com.example.loginapp.dto.ErrorResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+
+import com.example.loginapp.rest.model.ErrorResponse;
 
 /**
  * アプリケーション全体で共通的に例外を処理するグローバル例外ハンドラークラス。

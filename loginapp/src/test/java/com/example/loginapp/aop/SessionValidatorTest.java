@@ -3,14 +3,16 @@ package com.example.loginapp.aop;
 import com.example.loginapp.annotation.SessionRequired;
 import com.example.loginapp.config.SessionProperties;
 import com.example.loginapp.constants.MessageKeys;
-import com.example.loginapp.dto.ErrorResponse;
-import com.example.loginapp.dto.SessionCheckResponse;
-import com.example.loginapp.dto.SuccessResponse;
+import com.example.loginapp.rest.model.ErrorResponse;
+import com.example.loginapp.rest.model.SessionCheckResponse;
+import com.example.loginapp.rest.model.SuccessResponse;
 
 import org.aspectj.lang.ProceedingJoinPoint;
+import org.aspectj.lang.Signature;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpSession;
@@ -58,17 +60,23 @@ class SessionValidatorTest {
         /**
          * テストや処理中に使用されるメッセージ定数をまとめた定義。
          */
+        private static final String MOCK_METHOD_NAME = "mockMethod()";
         private static final String MSG_NOT_LOGGED_IN = "ログインしていません";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_SUCCESS_PROCESS = "成功しました";
         private static final String MSG_OK = "OK";
         private static final String MSG_SESSION_NOEXIT = "セッションが存在しません";
+        private static final String ERROR_PROCEED_JOINPOINT_FAILED = "ジョインポイント処理中にエラー発生";
+        private static final String MSG_INVALIDATE_ERROR = "セッション無効化エラー";
+        private static final String MSG_DB_ACCESS_ERROR = "DBアクセスエラー";
+        private static final String MSG_ILLEGAL_ARGUMENT = "不正な引数";
+        private static final String MSG_THROWABLE_ERROR = "致命的なエラー発生";
+        private static final String MSG_EXCEPTION_CONTAINS = "期待するメッセージを含みません: \"%s\"（実際: \"%s\"）";
         private static final String MSG_NON_RESPONSE_ENTITY_RESULT = "非ResponseEntityの結果";
-        private static final String ERROR_PROCEED_JOINPOINT_FAILED = "ジョインポイントの処理中にエラーが発生しました";
         private static final String ERROR_EXCEPTION_MESSAGE_NULL = "例外メッセージが null です";
         private static final String MSG_NON_RESPONSE_SESSION_CHECK = "非SessionCheckResponse";
-        private static final String MSG_EXCEPTION_SHOULD_NOT_BE_NULL = "Exception message should not be null";
-        private static final String MSG_EXCEPTION_SHOULD_CONTAIN = "Expected message to contain: \"%s\", but was: \"%s\"";
+        private static final String MSG_EXCEPTION_SHOULD_NOT_BE_NULL = "例外メッセージが null であってはいけません";
+        private static final String MSG_EXCEPTION_SHOULD_CONTAIN = "メッセージに「%s」を含むはずですが、実際は「%s」でした";
 
         @BeforeEach
         void setUp() {
@@ -85,6 +93,14 @@ class SessionValidatorTest {
                                 .thenReturn(MSG_SUCCESS_PROCESS);
                 when(messageSource.getMessage(eq(MessageKeys.ERROR_PROCEED_JOINPOINT_FAILED), any(), any(Locale.class)))
                                 .thenReturn(ERROR_PROCEED_JOINPOINT_FAILED);
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(MSG_DB_ACCESS_ERROR);
+        }
+
+        private Signature mockSignature() {
+                Signature signature = mock(Signature.class);
+                when(signature.toShortString()).thenReturn(MOCK_METHOD_NAME);
+                return signature;
         }
 
         /** 未ログインの場合、401エラーが返ることを確認 */
@@ -93,6 +109,9 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
 
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session });
 
@@ -118,6 +137,9 @@ class SessionValidatorTest {
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
 
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session });
 
                 ResponseEntity<SessionCheckResponse> response = (ResponseEntity<SessionCheckResponse>) validator
@@ -142,6 +164,9 @@ class SessionValidatorTest {
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
 
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
 
@@ -171,6 +196,9 @@ class SessionValidatorTest {
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.JAPANESE;
 
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+
                 when(joinPoint.getArgs()).thenReturn(new Object[] { locale });
                 when(messageSource.getMessage(eq(ERROR_MISSING_HTTP_SESSION), any(), eq(locale)))
                                 .thenReturn(MSG_SESSION_NOEXIT);
@@ -194,6 +222,9 @@ class SessionValidatorTest {
 
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
 
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session });
                 when(messageSource.getMessage(eq(ERROR_NOT_LOGGED_IN), any(), any(Locale.class)))
@@ -219,6 +250,9 @@ class SessionValidatorTest {
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
 
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
 
@@ -252,6 +286,9 @@ class SessionValidatorTest {
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.JAPANESE;
 
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session, locale });
 
                 try {
@@ -284,6 +321,9 @@ class SessionValidatorTest {
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.JAPANESE;
+
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
 
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session, locale });
 
@@ -322,6 +362,9 @@ class SessionValidatorTest {
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.getDefault();
 
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+
                 when(joinPoint.getArgs()).thenReturn(new Object[] { session, locale });
 
                 ResponseEntity<String> entity = ResponseEntity.ok(MSG_NON_RESPONSE_SESSION_CHECK);
@@ -338,6 +381,163 @@ class SessionValidatorTest {
 
                 assertTrue(response.getBody() instanceof SuccessResponse);
                 assertEquals(MSG_SUCCESS_PROCESS, ((SuccessResponse) response.getBody()).getMessage());
+
+                try {
+                        verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
+                } catch (Throwable ignored) {
+                }
+        }
+
+        /** セッション無効化で例外が出ても401で返ることを確認 */
+        @Test
+        void testSessionInvalidateThrowsException() throws Exception {
+                MockHttpSession session = spy(new MockHttpSession());
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis() - EXPIRED_SESSION_OFFSET_MILLIS);
+
+                doThrow(new IllegalStateException(MSG_INVALIDATE_ERROR)).when(session).invalidate();
+
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session });
+
+                SessionRequired sessionRequired = mock(SessionRequired.class);
+
+                ResponseEntity<SessionCheckResponse> response = validator.checkSession(joinPoint, sessionRequired);
+
+                assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+                assertTrue(response.getBody() instanceof ErrorResponse);
+                assertEquals(MSG_SESSION_EXPIRED, ((ErrorResponse) response.getBody()).getError());
+        }
+
+        /** DataAccessExceptionが発生した場合、Exceptionにラップされることを確認 */
+        @Test
+        void testProceedJoinPointThrowsDataAccessException() throws Exception {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
+
+                try {
+                        doThrow(new DataAccessException(MSG_DB_ACCESS_ERROR) {
+                        }).when(joinPoint).proceed();
+                } catch (Throwable ignored) {
+                }
+
+                Exception thrown = assertThrows(Exception.class,
+                                () -> validator.checkSession(joinPoint, mock(SessionRequired.class)));
+
+                assertTrue(thrown.getMessage().contains(MSG_DB_ACCESS_ERROR));
+                assertTrue(thrown.getCause() instanceof DataAccessException);
+
+                try {
+                        verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
+                } catch (Throwable ignored) {
+                }
+        }
+
+        /** IllegalArgumentExceptionが発生した場合の確認 */
+        @Test
+        void testProceedJoinPointThrowsIllegalArgumentException() throws Exception {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
+
+                try {
+                        doThrow(new IllegalArgumentException(MSG_ILLEGAL_ARGUMENT)).when(joinPoint).proceed();
+                } catch (Throwable ignored) {
+                }
+
+                Exception thrown = assertThrows(Exception.class,
+                                () -> validator.checkSession(joinPoint, mock(SessionRequired.class)));
+
+                assertTrue(thrown.getMessage().contains(ERROR_PROCEED_JOINPOINT_FAILED));
+                assertTrue(thrown.getMessage().contains(MSG_ILLEGAL_ARGUMENT));
+                assertTrue(thrown.getCause() instanceof IllegalArgumentException);
+
+                try {
+                        verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
+                } catch (Throwable ignored) {
+                }
+        }
+
+        /** Throwable が発生した場合の確認 */
+        @Test
+        void testProceedJoinPointThrowsThrowable() throws Exception {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
+
+                try {
+                        doThrow(new Error(MSG_THROWABLE_ERROR)).when(joinPoint).proceed();
+                } catch (Throwable ignored) {
+                }
+
+                Exception thrown = assertThrows(Exception.class,
+                                () -> validator.checkSession(joinPoint, mock(SessionRequired.class)));
+
+                assertTrue(thrown.getMessage().contains(ERROR_PROCEED_JOINPOINT_FAILED),
+                                String.format(MSG_EXCEPTION_CONTAINS, ERROR_PROCEED_JOINPOINT_FAILED,
+                                                thrown.getMessage()));
+                assertTrue(thrown.getMessage().contains(MSG_THROWABLE_ERROR),
+                                String.format(MSG_EXCEPTION_CONTAINS, MSG_THROWABLE_ERROR, thrown.getMessage()));
+                assertTrue(thrown.getCause() instanceof Error);
+
+                try {
+                        verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();
+                } catch (Throwable ignored) {
+                }
+        }
+
+        /** Throwable が発生し、getMessage() が null の場合の確認 */
+        @Test
+        void testProceedJoinPointThrowsThrowableWithNullMessage() throws Exception {
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
+                Signature signatureMock = mockSignature();
+                when(joinPoint.getSignature()).thenReturn(signatureMock);
+                when(joinPoint.getArgs()).thenReturn(new Object[] { session, Locale.getDefault() });
+
+                Throwable throwableWithNullMessage = new Error() {
+                        @Override
+                        public String getMessage() {
+                                return null;
+                        }
+                };
+
+                try {
+                        doThrow(throwableWithNullMessage).when(joinPoint).proceed();
+                } catch (Throwable ignored) {
+                }
+
+                Exception thrown = assertThrows(Exception.class,
+                                () -> validator.checkSession(joinPoint, mock(SessionRequired.class)));
+
+                assertTrue(thrown.getMessage().contains(ERROR_PROCEED_JOINPOINT_FAILED),
+                                String.format(MSG_EXCEPTION_CONTAINS, ERROR_PROCEED_JOINPOINT_FAILED,
+                                                thrown.getMessage()));
+                assertTrue(thrown.getMessage().contains(throwableWithNullMessage.toString()),
+                                String.format(MSG_EXCEPTION_CONTAINS, throwableWithNullMessage.toString(),
+                                                thrown.getMessage()));
+                assertSame(throwableWithNullMessage, thrown.getCause());
 
                 try {
                         verify(joinPoint, times(EXPECTED_PROCEED_INVOCATION_COUNT)).proceed();

@@ -1,4 +1,4 @@
-package com.example.loginapp.mapper;
+package com.example.loginapp.domain.mapper;
 
 import java.util.List;
 
@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
-import com.example.loginapp.entity.Product;
+import com.example.loginapp.domain.entity.Product;
 
 /**
  * 商品テーブルへアクセスするMyBatisマッパー。

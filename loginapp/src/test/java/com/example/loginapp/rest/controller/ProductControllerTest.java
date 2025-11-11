@@ -1,6 +1,5 @@
-package com.example.loginapp.controller;
+package com.example.loginapp.rest.controller;
 
-import com.example.loginapp.entity.Product;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,10 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import com.example.loginapp.service.ProductService;
+import com.example.loginapp.LoginappApplication;
+import com.example.loginapp.domain.entity.Product;
+import com.example.loginapp.domain.service.ProductService;
+
 import org.springframework.http.MediaType;
 
 import java.util.Arrays;
@@ -33,7 +35,7 @@ import static com.example.loginapp.constants.SessionKeys.*;
 /**
  * {@link ProductController} の AOP (@SessionRequired) 対応テスト。
  */
-@SpringBootTest
+@SpringBootTest(classes = LoginappApplication.class)
 @AutoConfigureMockMvc
 class ProductControllerTest {
 
@@ -139,6 +141,26 @@ class ProductControllerTest {
                 verify(productService, times(EXPECTED_CALL_ONCE)).getAllProducts();
         }
 
+        /** getProducts() で DataAccessException が発生した場合 500 が返ることを確認 */
+        @Test
+        void getProducts_DataAccessException() throws Exception {
+                doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
+                }).when(productService).getAllProducts();
+
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(MSG_DB_CONNECTION_FAILED);
+
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                mockMvc.perform(get("/api/products").session(session))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
+
+                verify(productService, times(EXPECTED_CALL_ONCE)).getAllProducts();
+        }
+
         /** 未ログインで /api/products/{id} にアクセスすると 401 */
         @Test
         void getProductById_Unauthorized() throws Exception {
@@ -179,6 +201,26 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.products[0].id").value(PRODUCT_ID_IPHONE))
                                 .andExpect(jsonPath("$.products[0].name").value("iPhone"))
                                 .andExpect(jsonPath("$.products[0].price").value(PRICE_IPHONE));
+
+                verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_IPHONE);
+        }
+
+        /** getProductById() で DataAccessException が発生した場合 500 が返ることを確認 */
+        @Test
+        void getProductById_DataAccessException() throws Exception {
+                doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
+                }).when(productService).getProductById(PRODUCT_ID_IPHONE);
+
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(MSG_DB_CONNECTION_FAILED);
+
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                mockMvc.perform(get("/api/products/" + PRODUCT_ID_IPHONE).session(session))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
 
                 verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_IPHONE);
         }

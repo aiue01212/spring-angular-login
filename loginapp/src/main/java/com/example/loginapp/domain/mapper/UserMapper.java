@@ -1,10 +1,11 @@
-package com.example.loginapp.mapper;
+package com.example.loginapp.domain.mapper;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Insert;
 
-import com.example.loginapp.entity.User;
+import com.example.loginapp.domain.entity.User;
+
+import org.apache.ibatis.annotations.Insert;
 
 /**
  * ユーザー情報のデータベース操作を定義するインターフェース。
