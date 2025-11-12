@@ -103,7 +103,7 @@ public class SessionValidator {
     }
 
     /**
-     * joinPointの実行を行い、ThrowableをcatchしてExceptionに包んで再スローする。
+     * joinPointの実行を行い、例外処理を共通化する。
      *
      * @param joinPoint  対象メソッド
      * @param methodName ログ出力用のメソッド名

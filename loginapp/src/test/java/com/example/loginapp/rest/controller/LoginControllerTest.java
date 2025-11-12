@@ -60,6 +60,8 @@ class LoginControllerTest {
         private static final String MSG_SESSION_ACTIVE = "ログイン中";
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
         private static final String MSG_INTERNAL_ERROR = "サーバー内部エラーが発生しました";
+        public static final String SESSION_ERROR = "セッションエラー";
+        public static final String SESSION_INVALIDATE_ERROR = "セッション無効化エラー";
 
         /**
          * 正常なログイン処理を確認するテスト。
@@ -202,6 +204,9 @@ class LoginControllerTest {
                                 .andExpect(jsonPath("$.error").value(MSG_INVALID_CREDENTIALS));
         }
 
+        /**
+         * ログイン処理中に DataAccessException（データベースアクセス例外）が発生した場合の分岐をテスト。
+         */
         @Test
         void loginDataAccessExceptionTest() throws Exception {
                 LoginRequest request = new LoginRequest();
@@ -220,6 +225,9 @@ class LoginControllerTest {
                                 .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
         }
 
+        /**
+         * ログイン時にセッション作成処理で IllegalStateException が発生した場合の分岐をテスト。
+         */
         @Test
         void loginSessionIllegalStateExceptionTest() throws Exception {
                 LoginRequest request = new LoginRequest();
@@ -231,7 +239,7 @@ class LoginControllerTest {
                 mockUser.setPassword("pass");
 
                 when(userService.findUser("user")).thenReturn(mockUser);
-                doThrow(new IllegalStateException("Session error"))
+                doThrow(new IllegalStateException(SESSION_ERROR))
                                 .when(sessionService).createLoginSession(any(), anyString());
 
                 mockMvc.perform(post("/api/login")
@@ -243,11 +251,14 @@ class LoginControllerTest {
                                 .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
         }
 
+        /**
+         * ログアウト処理中にセッション無効化で IllegalStateException が発生した場合の分岐をテスト。
+         */
         @Test
         void logoutIllegalStateExceptionTest() throws Exception {
                 MockHttpSession session = new MockHttpSession();
 
-                doThrow(new IllegalStateException("Session invalidate error"))
+                doThrow(new IllegalStateException(SESSION_INVALIDATE_ERROR))
                                 .when(sessionService).invalidateSession(any());
 
                 mockMvc.perform(post("/api/logout")

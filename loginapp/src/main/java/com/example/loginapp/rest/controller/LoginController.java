@@ -62,7 +62,6 @@ public class LoginController {
             Locale locale) {
         log.info("API開始: /login");
 
-        // ユーザー取得部分だけ try-catch
         User user;
         try {
             user = userService.findUser(request.getUsername());
@@ -111,7 +110,6 @@ public class LoginController {
             return ResponseEntity.internalServerError().body(new ErrorResponse(msg));
         }
 
-        // ここからは例外が想定されない処理
         String msg = messageSource.getMessage(SUCCESS_LOGOUT, null, locale);
         log.info("ログアウト完了");
         log.info("API終了: /logout");
