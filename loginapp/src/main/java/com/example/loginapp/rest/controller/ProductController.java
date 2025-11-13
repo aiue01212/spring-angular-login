@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 /**
  * 商品情報を管理するコントローラークラス。
  */
-@CrossOrigin(origins = "http://localhost:9090", allowCredentials = "true")
 @RestController
 @RequestMapping("/api/products")
 @RequiredArgsConstructor

@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 /**
  * ログイン・ログアウトおよびセッション確認を行うコントローラー。
  */
-@CrossOrigin(origins = "http://localhost:9090", allowCredentials = "true")
 @RestController
 @RequestMapping("/api")
 @RequiredArgsConstructor

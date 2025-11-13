@@ -1,5 +1,6 @@
 package com.example.loginapp.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -8,10 +9,11 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
  * Webアプリケーション全体のCORS設定を行うクラス。
  */
 @Configuration
+@RequiredArgsConstructor
 public class WebConfig implements WebMvcConfigurer {
 
-    /** フロントエンドの許可するオリジン */
-    private static final String[] ALLOWED_ORIGINS = { "http://localhost:9090" };
+    /** CORS設定用のプロパティ。 */
+    private final CorsProperties corsProperties;
 
     /** 許可するHTTPメソッド */
     private static final String[] ALLOWED_METHODS = { "GET", "POST", "PUT", "DELETE" };
@@ -24,8 +26,8 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
-                .allowedOrigins(ALLOWED_ORIGINS)
+                .allowedOrigins(corsProperties.getAllowedOrigins())
                 .allowedMethods(ALLOWED_METHODS)
-                .allowCredentials(true); // セッション情報を許可
+                .allowCredentials(true);
     }
 }
