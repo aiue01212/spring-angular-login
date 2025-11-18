@@ -1,4 +1,4 @@
-package com.example.loginapp.domain.mapper;
+package com.example.loginapp.domain.repository;
 
 import java.util.List;
 
@@ -14,7 +14,7 @@ import com.example.loginapp.domain.entity.Product;
  * 商品テーブルへアクセスするMyBatisマッパー。
  */
 @Mapper
-public interface ProductMapper {
+public interface ProductRepository {
 
     /**
      * 全商品の一覧を取得する。

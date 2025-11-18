@@ -1,4 +1,4 @@
-package com.example.loginapp.config;
+package com.example.loginapp.domain.config;
 
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;

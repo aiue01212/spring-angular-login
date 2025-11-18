@@ -1,4 +1,4 @@
-package com.example.loginapp.handler;
+package com.example.loginapp.rest.handler;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

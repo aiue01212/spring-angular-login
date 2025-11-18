@@ -1,9 +1,10 @@
-package com.example.loginapp.domain.service;
+package com.example.loginapp.rest.service;
 
 import jakarta.servlet.http.HttpSession;
-import org.springframework.stereotype.Service;
 
-import static com.example.loginapp.constants.SessionKeys.*;
+import static com.example.loginapp.domain.constants.SessionKeys.*;
+
+import org.springframework.stereotype.Service;
 
 /**
  * セッション管理を行うサービスクラス。

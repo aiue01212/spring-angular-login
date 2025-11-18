@@ -1,4 +1,4 @@
-package com.example.loginapp.domain.mapper;
+package com.example.loginapp.domain.repository;
 
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
@@ -11,7 +11,7 @@ import org.apache.ibatis.annotations.Insert;
  * ユーザー情報のデータベース操作を定義するインターフェース。
  */
 @Mapper
-public interface UserMapper {
+public interface UserRepository {
 
     /**
      * 指定されたユーザー名に対応するユーザーを取得します。

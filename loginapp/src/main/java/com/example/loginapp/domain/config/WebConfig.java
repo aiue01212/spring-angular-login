@@ -1,4 +1,4 @@
-package com.example.loginapp.config;
+package com.example.loginapp.domain.config;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;

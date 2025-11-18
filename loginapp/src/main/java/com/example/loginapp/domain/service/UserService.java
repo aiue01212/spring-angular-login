@@ -5,13 +5,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.loginapp.domain.entity.User;
-import com.example.loginapp.domain.mapper.UserMapper;
+import com.example.loginapp.domain.repository.UserRepository;
 
 @Service
 public class UserService {
 
     @Autowired
-    private UserMapper userMapper;
+    private UserRepository userRepository;
 
     /**
      * ユーザー名からユーザー情報を取得する。
@@ -20,7 +20,7 @@ public class UserService {
      * @return ユーザー情報
      */
     public User findUser(String username) {
-        return userMapper.findByUsername(username);
+        return userRepository.findByUsername(username);
     }
 
     /**
@@ -30,6 +30,6 @@ public class UserService {
      */
     @Transactional
     public void registerUser(User user) {
-        userMapper.insertUser(user);
+        userRepository.insertUser(user);
     }
 }

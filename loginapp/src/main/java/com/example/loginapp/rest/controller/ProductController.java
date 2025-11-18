@@ -1,6 +1,6 @@
 package com.example.loginapp.rest.controller;
 
-import com.example.loginapp.annotation.SessionRequired;
+import com.example.loginapp.domain.annotation.SessionRequired;
 import com.example.loginapp.domain.entity.Product;
 import com.example.loginapp.domain.service.ProductService;
 import com.example.loginapp.rest.model.ErrorResponse;
@@ -16,7 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import static com.example.loginapp.constants.MessageKeys.*;
+
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 
 import java.util.List;
 import java.util.Locale;

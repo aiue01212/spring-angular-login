@@ -2,9 +2,9 @@ package com.example.loginapp.rest.controller;
 
 import com.example.loginapp.LoginappApplication;
 import com.example.loginapp.domain.entity.User;
-import com.example.loginapp.domain.service.SessionService;
 import com.example.loginapp.domain.service.UserService;
 import com.example.loginapp.rest.model.LoginRequest;
+import com.example.loginapp.rest.service.SessionService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
@@ -17,6 +17,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static com.example.loginapp.domain.constants.SessionKeys.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;
@@ -24,8 +25,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-
-import static com.example.loginapp.constants.SessionKeys.*;
 
 /**
  * {@link LoginController} の動作を検証するテストクラス。

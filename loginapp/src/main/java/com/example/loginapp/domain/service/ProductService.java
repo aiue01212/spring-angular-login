@@ -1,9 +1,11 @@
 package com.example.loginapp.domain.service;
 
 import com.example.loginapp.domain.entity.Product;
-import com.example.loginapp.domain.mapper.ProductMapper;
+import com.example.loginapp.domain.repository.ProductRepository;
 
 import lombok.RequiredArgsConstructor;
+
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 
 import java.util.List;
 import java.util.Locale;
@@ -12,14 +14,12 @@ import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import static com.example.loginapp.constants.MessageKeys.*;
-
 @Service
 @RequiredArgsConstructor
 public class ProductService {
 
     /** 商品データアクセス */
-    private final ProductMapper productMapper;
+    private final ProductRepository productRepository;
 
     /** メッセージリソース */
     private final MessageSource messageSource;
@@ -30,7 +30,7 @@ public class ProductService {
      * @return 商品リスト
      */
     public List<Product> getAllProducts() {
-        return productMapper.findAll();
+        return productRepository.findAll();
     }
 
     /**
@@ -40,7 +40,7 @@ public class ProductService {
      * @return 商品情報、存在しなければ null
      */
     public Product getProductById(int id) {
-        return productMapper.findById(id);
+        return productRepository.findById(id);
     }
 
     /**
@@ -55,8 +55,8 @@ public class ProductService {
     @Transactional
     public void updateTwoProductsWithRollback(int id1, double price1, int id2, double price2) {
 
-        productMapper.updatePrice(id1, price1);
-        productMapper.updatePrice(id2, price2);
+        productRepository.updatePrice(id1, price1);
+        productRepository.updatePrice(id2, price2);
 
         String rollbackMsg = messageSource.getMessage(ERROR_ROLLBACK_TEST, null, Locale.getDefault());
         throw new RuntimeException(rollbackMsg);

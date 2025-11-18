@@ -23,7 +23,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * </p>
  */
 @SpringBootApplication
-@MapperScan("com.example.loginapp.domain.mapper")
+@MapperScan("com.example.loginapp.domain.repository")
 public class LoginappApplication {
 
 	/**
