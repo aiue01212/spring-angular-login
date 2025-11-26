@@ -1,4 +1,4 @@
-package com.example.loginapp.domain.constants;
+package com.example.loginapp.rest.constants;
 
 /**
  * メッセージキーの定数クラス。

@@ -1,7 +1,7 @@
-package com.example.loginapp.domain.aop;
+package com.example.loginapp.rest.interceptor;
 
-import com.example.loginapp.domain.annotation.SessionRequired;
-import com.example.loginapp.domain.config.SessionProperties;
+import com.example.loginapp.rest.annotation.SessionRequired;
+import com.example.loginapp.rest.config.SessionProperties;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.SessionCheckResponse;
 import com.example.loginapp.rest.model.SuccessResponse;
@@ -18,8 +18,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import static com.example.loginapp.domain.constants.MessageKeys.*;
-import static com.example.loginapp.domain.constants.SessionKeys.*;
+import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.rest.constants.SessionKeys.*;
 
 import java.util.Locale;
 

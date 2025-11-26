@@ -1,8 +1,8 @@
 package com.example.loginapp.rest.controller;
 
-import com.example.loginapp.domain.annotation.SessionRequired;
-import com.example.loginapp.domain.entity.User;
+import com.example.loginapp.domain.model.User;
 import com.example.loginapp.domain.service.UserService;
+import com.example.loginapp.rest.annotation.SessionRequired;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.LoginRequest;
 import com.example.loginapp.rest.model.SessionCheckResponse;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
 
-import static com.example.loginapp.domain.constants.MessageKeys.*;
+import static com.example.loginapp.rest.constants.MessageKeys.*;
 
 import java.util.Locale;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.example.loginapp.domain.entity;
+package com.example.loginapp.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Data;

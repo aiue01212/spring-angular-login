@@ -1,10 +1,10 @@
-package com.example.loginapp.domain.config;
+package com.example.loginapp.rest.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
 
-import com.example.loginapp.domain.constants.MessageKeys;
+import com.example.loginapp.rest.constants.MessageKeys;
 
 /**
  * セッション関連の設定を保持するクラス。

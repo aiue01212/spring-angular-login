@@ -1,4 +1,4 @@
-package com.example.loginapp.domain.annotation;
+package com.example.loginapp.rest.annotation;
 
 import java.lang.annotation.*;
 

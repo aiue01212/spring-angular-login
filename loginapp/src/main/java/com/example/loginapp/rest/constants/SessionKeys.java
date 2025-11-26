@@ -1,4 +1,4 @@
-package com.example.loginapp.domain.constants;
+package com.example.loginapp.rest.constants;
 
 /**
  * セッションキーの定数クラス。

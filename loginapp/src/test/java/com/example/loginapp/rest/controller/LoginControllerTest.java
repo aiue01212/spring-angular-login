@@ -1,7 +1,7 @@
 package com.example.loginapp.rest.controller;
 
 import com.example.loginapp.LoginappApplication;
-import com.example.loginapp.domain.entity.User;
+import com.example.loginapp.domain.model.User;
 import com.example.loginapp.domain.service.UserService;
 import com.example.loginapp.rest.model.LoginRequest;
 import com.example.loginapp.rest.service.SessionService;
@@ -17,7 +17,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.example.loginapp.domain.constants.SessionKeys.*;
+import static com.example.loginapp.rest.constants.SessionKeys.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doThrow;

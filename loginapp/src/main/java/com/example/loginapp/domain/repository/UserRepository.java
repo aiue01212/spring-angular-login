@@ -3,7 +3,7 @@ package com.example.loginapp.domain.repository;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
-import com.example.loginapp.domain.entity.User;
+import com.example.loginapp.domain.model.User;
 
 import org.apache.ibatis.annotations.Insert;
 

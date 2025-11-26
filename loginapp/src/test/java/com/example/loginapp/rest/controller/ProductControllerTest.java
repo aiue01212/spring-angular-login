@@ -12,7 +12,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.loginapp.LoginappApplication;
-import com.example.loginapp.domain.entity.Product;
+import com.example.loginapp.domain.model.Product;
 import com.example.loginapp.domain.service.ProductService;
 
 import org.springframework.http.MediaType;
@@ -21,8 +21,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static com.example.loginapp.domain.constants.MessageKeys.*;
-import static com.example.loginapp.domain.constants.SessionKeys.*;
+import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.rest.constants.SessionKeys.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyDouble;
 import static org.mockito.ArgumentMatchers.anyInt;

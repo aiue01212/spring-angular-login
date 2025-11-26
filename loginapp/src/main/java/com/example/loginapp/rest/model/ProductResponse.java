@@ -5,7 +5,7 @@ import lombok.Data;
 
 import java.util.List;
 
-import com.example.loginapp.domain.entity.Product;
+import com.example.loginapp.domain.model.Product;
 
 /**
  * 商品取得レスポンス（成功時のみ使用）
