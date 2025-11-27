@@ -1,32 +1,28 @@
 package com.example.loginapp.domain.repository;
 
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-
 import com.example.loginapp.domain.model.User;
 
-import org.apache.ibatis.annotations.Insert;
-
 /**
- * ユーザー情報のデータベース操作を定義するインターフェース。
+ * ユーザーに関する永続化操作を定義するリポジトリ（技術非依存）。
+ * <p>
+ * インフラ層の実際の永続化技術（MyBatis, JPA など）に依存しないため、
+ * クリーンアーキテクチャの依存方向（内 → 外）を保つことができる。
+ * </p>
  */
-@Mapper
 public interface UserRepository {
 
     /**
-     * 指定されたユーザー名に対応するユーザーを取得します。
+     * 指定されたユーザ名でユーザ情報を取得する。
      *
-     * @param username 検索対象のユーザー名
-     * @return 該当する {@link User} オブジェクト。存在しない場合は {@code null}
+     * @param username ユーザ名
+     * @return ユーザ情報（存在しない場合 null）
      */
-    @Select("SELECT * FROM users WHERE username = #{username}")
     User findByUsername(String username);
 
     /**
-     * 新しいユーザーをデータベースに挿入します。
+     * 新しいユーザを永続化する。
      *
-     * @param user 登録するユーザー情報を保持する {@link User} オブジェクト
+     * @param user 保存するユーザ情報
      */
-    @Insert("INSERT INTO users (username, password, email) VALUES (#{username}, #{password}, #{email})")
     void insertUser(User user);
 }

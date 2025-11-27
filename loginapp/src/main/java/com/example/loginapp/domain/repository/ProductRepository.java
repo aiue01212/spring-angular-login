@@ -2,18 +2,17 @@ package com.example.loginapp.domain.repository;
 
 import java.util.List;
 
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
-
 import com.example.loginapp.domain.model.Product;
 
 /**
- * 商品テーブルへアクセスするMyBatisマッパー。
+ * 商品エンティティに対する永続化操作を定義するリポジトリインターフェース。
+ * <p>
+ * 本インターフェースはドメイン層に属し、
+ * MyBatis・JPA・JDBC など特定のデータアクセス技術に依存しない抽象的な契約を提供する。
+ * <br>
+ * 実際のデータアクセス処理は infrastructure 層が本インターフェースを実装することで提供される。
+ * </p>
  */
-@Mapper
 public interface ProductRepository {
 
     /**
@@ -21,7 +20,6 @@ public interface ProductRepository {
      *
      * @return 商品リスト
      */
-    @Select("SELECT id, name, price FROM products")
     List<Product> findAll();
 
     /**
@@ -30,17 +28,15 @@ public interface ProductRepository {
      * @param id 商品ID
      * @return 該当する商品、存在しない場合はnull
      */
-    @Select("SELECT id, name, price FROM products WHERE id = #{id}")
     Product findById(int id);
 
     /**
-     * 商品価格を更新する。
+     * 商品の価格を更新する。
      *
-     * @param id    商品ID
+     * @param id    更新対象の商品ID
      * @param price 新しい価格
      */
-    @Update("UPDATE products SET price = #{price} WHERE id = #{id}")
-    void updatePrice(@Param("id") int id, @Param("price") double price);
+    void updatePrice(int id, double price);
 
     /**
      * ログテーブルに記録する（rollback確認用）。
@@ -49,6 +45,5 @@ public interface ProductRepository {
      * @param productId 商品ID
      * @param action    実施アクション
      */
-    @Insert("INSERT INTO product_logs (product_id, action) VALUES (#{productId}, #{action})")
-    void insertProductLog(@Param("productId") int productId, @Param("action") String action);
+    void insertProductLog(int productId, String action);
 }
