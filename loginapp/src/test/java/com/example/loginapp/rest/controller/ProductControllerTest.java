@@ -13,7 +13,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.loginapp.LoginappApplication;
 import com.example.loginapp.domain.model.Product;
-import com.example.loginapp.domain.service.ProductService;
+import com.example.loginapp.usecase.product.GetAllProductsInputBoundary;
+import com.example.loginapp.usecase.product.GetAllProductsInputData;
+import com.example.loginapp.usecase.product.GetAllProductsOutputData;
+import com.example.loginapp.usecase.product.GetProductByIdInputBoundary;
+import com.example.loginapp.usecase.product.GetProductByIdInputData;
+import com.example.loginapp.usecase.product.GetProductByIdOutputData;
+import com.example.loginapp.usecase.product.UpdateTwoProductsInputBoundary;
+import com.example.loginapp.usecase.product.UpdateTwoProductsOutputData;
 
 import org.springframework.http.MediaType;
 
@@ -24,8 +31,6 @@ import java.util.Locale;
 import static com.example.loginapp.rest.constants.MessageKeys.*;
 import static com.example.loginapp.rest.constants.SessionKeys.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyDouble;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -43,10 +48,16 @@ class ProductControllerTest {
         private MockMvc mockMvc;
 
         @MockitoBean
-        private ProductService productService;
+        private MessageSource messageSource;
 
         @MockitoBean
-        private MessageSource messageSource;
+        private GetAllProductsInputBoundary getAllProductsUseCase;
+
+        @MockitoBean
+        private GetProductByIdInputBoundary getProductByIdUseCase;
+
+        @MockitoBean
+        private UpdateTwoProductsInputBoundary updateProductsUseCase;
 
         /** セッション有効期限 */
         private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
@@ -57,13 +68,12 @@ class ProductControllerTest {
          */
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
-        private static final String MSG_SUCCESS_PROCESS = "処理成功";
         private static final String MSG_PRODUCT_NOT_FOUND = "商品が見つかりません";
-        private static final String MSG_ROLLBACK = "ロールバックされました";
         private static final String MSG_UPDATE_WITH_ROLLBACK = "更新成功（ただし例外でロールバックされます）";
         private static final String MSG_ROLLBACK_OCCURRED = "更新中に例外が発生し、ロールバックされました: テスト用例外";
-        private static final String MSG_TEST_EXCEPTION = "テスト用例外";
         private static final String MSG_DB_CONNECTION_FAILED = "DB接続失敗";
+        private static final String MSG_ROLLBACK_PREFIX = "更新中に例外が発生し、ロールバックされました: ";
+        private static final String MSG_RUNTIME_EXCEPTION = "テスト用 RuntimeException";
 
         private static final int PRODUCT_ID_IPHONE = 1;
         private static final int PRODUCT_ID_GALAXY = 2;
@@ -71,8 +81,6 @@ class ProductControllerTest {
 
         private static final double PRICE_IPHONE = 120000.0;
         private static final double PRICE_GALAXY = 98000.0;
-        private static final double PRICE_UPDATED_IPHONE = 130000.0;
-        private static final double PRICE_UPDATED_GALAXY = 99000.0;
 
         private static final int EXPECTED_CALL_ONCE = 1;
 
@@ -82,14 +90,14 @@ class ProductControllerTest {
                                 .thenReturn(MSG_NOT_LOGGED_IN);
                 when(messageSource.getMessage(eq(ERROR_SESSION_EXPIRED), any(), any(Locale.class)))
                                 .thenReturn(MSG_SESSION_EXPIRED);
-                when(messageSource.getMessage(eq(SUCCESS_PROCESS), any(), any(Locale.class)))
-                                .thenReturn(MSG_SUCCESS_PROCESS);
                 when(messageSource.getMessage(eq(ERROR_PRODUCT_NOT_FOUND), any(), any(Locale.class)))
                                 .thenReturn(MSG_PRODUCT_NOT_FOUND);
                 when(messageSource.getMessage(eq(SUCCESS_UPDATE_WITH_ROLLBACK), any(), any(Locale.class)))
                                 .thenReturn(MSG_UPDATE_WITH_ROLLBACK);
                 when(messageSource.getMessage(eq(ERROR_ROLLBACK_OCCURRED), any(), any(Locale.class)))
                                 .thenReturn(MSG_ROLLBACK_OCCURRED);
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(MSG_DB_CONNECTION_FAILED);
         }
 
         /** 未ログイン状態で /api/products にアクセスすると 401 が返ることを確認 */
@@ -99,7 +107,7 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_NOT_LOGGED_IN));
 
-                verify(productService, never()).getAllProducts();
+                verify(getAllProductsUseCase, never()).handle(any());
         }
 
         /** セッション期限切れの場合 401 が返ることを確認 */
@@ -114,7 +122,7 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_SESSION_EXPIRED));
 
-                verify(productService, never()).getAllProducts();
+                verify(getAllProductsUseCase, never()).handle(any());
         }
 
         /** ログイン済みで商品一覧を取得できることを確認 */
@@ -123,7 +131,8 @@ class ProductControllerTest {
                 List<Product> dummyList = Arrays.asList(
                                 new Product(PRODUCT_ID_IPHONE, "iPhone", PRICE_IPHONE),
                                 new Product(PRODUCT_ID_GALAXY, "Galaxy", PRICE_GALAXY));
-                when(productService.getAllProducts()).thenReturn(dummyList);
+                when(getAllProductsUseCase.handle(any()))
+                                .thenReturn(new GetAllProductsOutputData(true, dummyList, null, null));
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -138,17 +147,16 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.products[1].name").value("Galaxy"))
                                 .andExpect(jsonPath("$.products[1].price").value(PRICE_GALAXY));
 
-                verify(productService, times(EXPECTED_CALL_ONCE)).getAllProducts();
+                verify(getAllProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 
         /** getProducts() で DataAccessException が発生した場合 500 が返ることを確認 */
         @Test
         void getProducts_DataAccessException() throws Exception {
                 doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
-                }).when(productService).getAllProducts();
-
-                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
-                                .thenReturn(MSG_DB_CONNECTION_FAILED);
+                })
+                                .when(getAllProductsUseCase)
+                                .handle(any(GetAllProductsInputData.class));
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -158,7 +166,7 @@ class ProductControllerTest {
                                 .andExpect(status().isInternalServerError())
                                 .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
 
-                verify(productService, times(EXPECTED_CALL_ONCE)).getAllProducts();
+                verify(getAllProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 
         /** 未ログインで /api/products/{id} にアクセスすると 401 */
@@ -168,7 +176,7 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_NOT_LOGGED_IN));
 
-                verify(productService, never()).getProductById(anyInt());
+                verify(getProductByIdUseCase, never()).handle(any());
         }
 
         /** セッション期限切れで /api/products/{id} にアクセスすると 401 */
@@ -183,14 +191,16 @@ class ProductControllerTest {
                                 .andExpect(status().isUnauthorized())
                                 .andExpect(jsonPath("$.error").value(MSG_SESSION_EXPIRED));
 
-                verify(productService, never()).getProductById(anyInt());
+                verify(getProductByIdUseCase, never()).handle(any());
         }
 
         /** ログイン済みで存在する商品を取得できることを確認 */
         @Test
         void getProductById_LoggedIn_Found() throws Exception {
                 Product product = new Product(PRODUCT_ID_IPHONE, "iPhone", PRICE_IPHONE);
-                when(productService.getProductById(PRODUCT_ID_IPHONE)).thenReturn(product);
+
+                when(getProductByIdUseCase.handle(any()))
+                                .thenReturn(new GetProductByIdOutputData(true, product, null, null));
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -202,17 +212,16 @@ class ProductControllerTest {
                                 .andExpect(jsonPath("$.products[0].name").value("iPhone"))
                                 .andExpect(jsonPath("$.products[0].price").value(PRICE_IPHONE));
 
-                verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_IPHONE);
+                verify(getProductByIdUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 
         /** getProductById() で DataAccessException が発生した場合 500 が返ることを確認 */
         @Test
         void getProductById_DataAccessException() throws Exception {
                 doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
-                }).when(productService).getProductById(PRODUCT_ID_IPHONE);
-
-                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
-                                .thenReturn(MSG_DB_CONNECTION_FAILED);
+                })
+                                .when(getProductByIdUseCase)
+                                .handle(any(GetProductByIdInputData.class));
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -222,31 +231,31 @@ class ProductControllerTest {
                                 .andExpect(status().isInternalServerError())
                                 .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
 
-                verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_IPHONE);
+                verify(getProductByIdUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 
         /** ログイン済みだが商品が存在しない場合 404 */
         @Test
         void getProductById_LoggedIn_NotFound() throws Exception {
-                when(productService.getProductById(PRODUCT_ID_NOT_FOUND)).thenReturn(null);
+                when(getProductByIdUseCase.handle(any()))
+                                .thenReturn(new GetProductByIdOutputData(true, null, null, null));
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
 
-                mockMvc.perform(get("/api/products/999").session(session))
+                mockMvc.perform(get("/api/products/" + PRODUCT_ID_NOT_FOUND).session(session))
                                 .andExpect(status().isNotFound())
                                 .andExpect(jsonPath("$.error").value(MSG_PRODUCT_NOT_FOUND));
 
-                verify(productService, times(EXPECTED_CALL_ONCE)).getProductById(PRODUCT_ID_NOT_FOUND);
+                verify(getProductByIdUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 
         /** rollback エンドポイントのテスト */
         @Test
         void updateTest_Rollback() throws Exception {
-                doThrow(new RuntimeException(MSG_TEST_EXCEPTION)).when(productService)
-                                .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
-                                                PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
+                when(updateProductsUseCase.handle(any())).thenReturn(
+                                new UpdateTwoProductsOutputData(false, MSG_ROLLBACK_OCCURRED));
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -256,18 +265,37 @@ class ProductControllerTest {
                                 .session(session)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error", org.hamcrest.Matchers.containsString(MSG_ROLLBACK)));
+                                .andExpect(jsonPath("$.error").value(MSG_ROLLBACK_OCCURRED));
 
-                verify(productService, times(EXPECTED_CALL_ONCE))
-                                .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
-                                                PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
+                verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
+        }
+
+        /** updateTest() で RuntimeException が発生した場合 500 が返ることを確認 */
+        @Test
+        void updateTest_RuntimeException() throws Exception {
+                doThrow(new RuntimeException(MSG_RUNTIME_EXCEPTION))
+                                .when(updateProductsUseCase)
+                                .handle(any());
+
+                MockHttpSession session = new MockHttpSession();
+                session.setAttribute(IS_LOGGED_IN, true);
+                session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                mockMvc.perform(post("/api/products/update-test")
+                                .session(session)
+                                .contentType(MediaType.APPLICATION_JSON))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.error").value(MSG_ROLLBACK_OCCURRED));
+
+                verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE))
+                                .handle(any());
         }
 
         /** rollback エンドポイントの成功パターン（例外なし）をテスト */
         @Test
         void updateTest_Success() throws Exception {
-                doNothing().when(productService)
-                                .updateTwoProductsWithRollback(anyInt(), anyDouble(), anyInt(), anyDouble());
+                when(updateProductsUseCase.handle(any())).thenReturn(
+                                new UpdateTwoProductsOutputData(true, null));
 
                 when(messageSource.getMessage(eq(SUCCESS_UPDATE_WITH_ROLLBACK), any(), any(Locale.class)))
                                 .thenReturn(MSG_UPDATE_WITH_ROLLBACK);
@@ -282,8 +310,7 @@ class ProductControllerTest {
                                 .andExpect(status().isOk())
                                 .andExpect(jsonPath("$.error").value(MSG_UPDATE_WITH_ROLLBACK));
 
-                verify(productService, times(EXPECTED_CALL_ONCE))
-                                .updateTwoProductsWithRollback(anyInt(), anyDouble(), anyInt(), anyDouble());
+                verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 
         /**
@@ -294,15 +321,17 @@ class ProductControllerTest {
         @Test
         void updateTest_DataAccessException() throws Exception {
                 doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
-                }).when(productService)
-                                .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
-                                                PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
+                })
+                                .when(updateProductsUseCase)
+                                .handle(any());
 
-                String dbErrorMsg = messageSource.getMessage(ERROR_DATABASE_ACCESS,
-                                new Object[] { MSG_DB_CONNECTION_FAILED },
-                                Locale.getDefault());
-                String expectedErrorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED, new Object[] { dbErrorMsg },
-                                Locale.getDefault());
+                String dbErrorMsg = MSG_DB_CONNECTION_FAILED;
+                String expectedErrorMsg = MSG_ROLLBACK_PREFIX + dbErrorMsg;
+
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(dbErrorMsg);
+                when(messageSource.getMessage(eq(ERROR_ROLLBACK_OCCURRED), any(), any(Locale.class)))
+                                .thenReturn(expectedErrorMsg);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -314,8 +343,6 @@ class ProductControllerTest {
                                 .andExpect(status().isInternalServerError())
                                 .andExpect(jsonPath("$.error").value(expectedErrorMsg));
 
-                verify(productService, times(EXPECTED_CALL_ONCE))
-                                .updateTwoProductsWithRollback(PRODUCT_ID_IPHONE, PRICE_UPDATED_IPHONE,
-                                                PRODUCT_ID_GALAXY, PRICE_UPDATED_GALAXY);
+                verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
 }

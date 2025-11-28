@@ -1,11 +1,19 @@
 package com.example.loginapp.rest.controller;
 
 import com.example.loginapp.domain.model.Product;
-import com.example.loginapp.domain.service.ProductService;
 import com.example.loginapp.rest.annotation.SessionRequired;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.ProductResponse;
 import com.example.loginapp.rest.model.SessionCheckResponse;
+import com.example.loginapp.usecase.product.GetAllProductsInputBoundary;
+import com.example.loginapp.usecase.product.GetAllProductsInputData;
+import com.example.loginapp.usecase.product.GetAllProductsOutputData;
+import com.example.loginapp.usecase.product.GetProductByIdInputBoundary;
+import com.example.loginapp.usecase.product.GetProductByIdInputData;
+import com.example.loginapp.usecase.product.GetProductByIdOutputData;
+import com.example.loginapp.usecase.product.UpdateTwoProductsInputBoundary;
+import com.example.loginapp.usecase.product.UpdateTwoProductsInputData;
+import com.example.loginapp.usecase.product.UpdateTwoProductsOutputData;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.MessageSource;
@@ -32,8 +40,14 @@ import org.slf4j.LoggerFactory;
 @RequiredArgsConstructor
 public class ProductController {
 
-    /** 商品サービス */
-    private final ProductService productService;
+    /** 全商品取得用 UseCase */
+    private final GetAllProductsInputBoundary getAllProductsUseCase;
+
+    /** ID指定商品取得用 UseCase */
+    private final GetProductByIdInputBoundary getProductByIdUseCase;
+
+    /** 更新テスト用 UseCase */
+    private final UpdateTwoProductsInputBoundary updateProductsUseCase;
 
     /** メッセージリソース */
     private final MessageSource messageSource;
@@ -60,16 +74,19 @@ public class ProductController {
     @SessionRequired
     public ResponseEntity<SessionCheckResponse> getProducts(HttpSession session, Locale locale) {
         log.info("API開始: /products");
-        List<Product> products;
+
+        GetAllProductsOutputData outputData;
         try {
-            products = productService.getAllProducts();
+            outputData = getAllProductsUseCase.handle(new GetAllProductsInputData());
         } catch (DataAccessException e) {
             log.error("商品一覧取得中に例外発生", e);
             String msg = messageSource.getMessage(ERROR_DATABASE_ACCESS, null, locale);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(msg));
         }
 
+        List<Product> products = outputData.getProducts();
         ProductResponse response = new ProductResponse(products);
+
         log.info("商品一覧取得件数: {}", products.size());
         log.info("API終了: /products");
         return ResponseEntity.ok(response);
@@ -88,15 +105,17 @@ public class ProductController {
     public ResponseEntity<SessionCheckResponse> getProductById(@PathVariable int id, HttpSession session,
             Locale locale) {
         log.info("API開始: /products/{}", id);
-        Product product;
+
+        GetProductByIdOutputData outputData;
         try {
-            product = productService.getProductById(id);
+            outputData = getProductByIdUseCase.handle(new GetProductByIdInputData(id));
         } catch (DataAccessException e) {
             log.error("商品取得中に例外発生: ID={}", id, e);
             String msg = messageSource.getMessage(ERROR_DATABASE_ACCESS, null, locale);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(msg));
         }
 
+        Product product = outputData.getProduct();
         if (product == null) {
             String errorMsg = messageSource.getMessage(ERROR_PRODUCT_NOT_FOUND, null, locale);
             log.warn("商品未取得: ID={}", id);
@@ -117,7 +136,14 @@ public class ProductController {
     public ResponseEntity<ErrorResponse> updateTest(HttpSession session, Locale locale) {
         log.info("API開始: /products/update-test");
         try {
-            productService.updateTwoProductsWithRollback(PRODUCT_ID_1, PRICE_PRODUCT_1, PRODUCT_ID_2, PRICE_PRODUCT_2);
+            UpdateTwoProductsOutputData outputData = updateProductsUseCase.handle(
+                    new UpdateTwoProductsInputData(PRODUCT_ID_1, PRICE_PRODUCT_1, PRODUCT_ID_2, PRICE_PRODUCT_2));
+
+            if (!outputData.isSuccess()) {
+                String errorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED,
+                        new Object[] { outputData.getErrorMessage() }, locale);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(errorMsg));
+            }
         } catch (DataAccessException e) {
             log.error("商品更新中にデータベース例外発生", e);
             String dbErrorMsg = messageSource.getMessage(ERROR_DATABASE_ACCESS, new Object[] { e.getMessage() },

@@ -21,6 +21,7 @@ public final class MessageKeys {
     public static final String ERROR_NEGATIVE_SESSION_TIMEOUT = "error.negativeSessionTimeout";
     public static final String ERROR_PROCEED_JOINPOINT_FAILED = "error.proceed.joinpoint.failed";
     public static final String ERROR_DATABASE_ACCESS = "error.database.access";
+    public static final String ERROR_PRODUCT_NOT_FOUND_ID = "error.productNotFoundWithId";
 
     /** 成功メッセージ */
     public static final String SUCCESS_LOGIN = "success.login";
