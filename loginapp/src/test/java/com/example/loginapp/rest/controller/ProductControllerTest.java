@@ -24,6 +24,7 @@ import com.example.loginapp.usecase.product.UpdateTwoProductsOutputData;
 
 import org.springframework.http.MediaType;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -129,8 +130,8 @@ class ProductControllerTest {
         @Test
         void getProducts_LoggedIn() throws Exception {
                 List<Product> dummyList = Arrays.asList(
-                                new Product(PRODUCT_ID_IPHONE, "iPhone", PRICE_IPHONE),
-                                new Product(PRODUCT_ID_GALAXY, "Galaxy", PRICE_GALAXY));
+                                new Product(PRODUCT_ID_IPHONE, "iPhone", BigDecimal.valueOf(PRICE_IPHONE)),
+                                new Product(PRODUCT_ID_GALAXY, "Galaxy", BigDecimal.valueOf(PRICE_GALAXY)));
                 when(getAllProductsUseCase.handle(any()))
                                 .thenReturn(new GetAllProductsOutputData(true, dummyList, null, null));
 
@@ -197,7 +198,7 @@ class ProductControllerTest {
         /** ログイン済みで存在する商品を取得できることを確認 */
         @Test
         void getProductById_LoggedIn_Found() throws Exception {
-                Product product = new Product(PRODUCT_ID_IPHONE, "iPhone", PRICE_IPHONE);
+                Product product = new Product(PRODUCT_ID_IPHONE, "iPhone", BigDecimal.valueOf(PRICE_IPHONE));
 
                 when(getProductByIdUseCase.handle(any()))
                                 .thenReturn(new GetProductByIdOutputData(true, product, null, null));

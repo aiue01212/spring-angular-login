@@ -9,6 +9,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.MessageSource;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
@@ -47,8 +48,8 @@ class ProductServiceImplTest {
     private static final String MSG_ROLLBACK_ERROR = "Rollback test error";
 
     /** 価格更新テスト用値 */
-    private static final double PRICE_UPDATE_1 = 1000.0;
-    private static final double PRICE_UPDATE_2 = 2000.0;
+    private static final BigDecimal PRICE_UPDATE_1 = BigDecimal.valueOf(1000.0);
+    private static final BigDecimal PRICE_UPDATE_2 = BigDecimal.valueOf(2000.0);
 
     /** 商品データの永続化にアクセスするリポジトリのモック。 */
     @Mock
@@ -75,8 +76,8 @@ class ProductServiceImplTest {
     @Test
     void getAllProducts_ReturnsProductList() {
         List<Product> mockList = Arrays.asList(
-                new Product(PRODUCT_ID_1, PRODUCT_NAME_IPHONE, PRICE_IPHONE),
-                new Product(PRODUCT_ID_2, PRODUCT_NAME_GALAXY, PRICE_GALAXY));
+                new Product(PRODUCT_ID_1, PRODUCT_NAME_IPHONE, BigDecimal.valueOf(PRICE_IPHONE)),
+                new Product(PRODUCT_ID_2, PRODUCT_NAME_GALAXY, BigDecimal.valueOf(PRICE_GALAXY)));
 
         when(productRepository.findAll()).thenReturn(mockList);
 
@@ -92,7 +93,7 @@ class ProductServiceImplTest {
      */
     @Test
     void getProductById_ReturnsProduct() {
-        Product product = new Product(PRODUCT_ID_1, PRODUCT_NAME_IPHONE, PRICE_IPHONE);
+        Product product = new Product(PRODUCT_ID_1, PRODUCT_NAME_IPHONE, BigDecimal.valueOf(PRICE_IPHONE));
 
         when(productRepository.findById(PRODUCT_ID_1)).thenReturn(product);
 

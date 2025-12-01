@@ -1,17 +1,12 @@
 package com.example.loginapp.domain.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import com.example.loginapp.domain.model.Product;
 
 /**
  * 商品エンティティに対する永続化操作を定義するリポジトリインターフェース。
- * <p>
- * 本インターフェースはドメイン層に属し、
- * MyBatis・JPA・JDBC など特定のデータアクセス技術に依存しない抽象的な契約を提供する。
- * <br>
- * 実際のデータアクセス処理は infrastructure 層が本インターフェースを実装することで提供される。
- * </p>
  */
 public interface ProductRepository {
 
@@ -36,11 +31,10 @@ public interface ProductRepository {
      * @param id    更新対象の商品ID
      * @param price 新しい価格
      */
-    void updatePrice(int id, double price);
+    void updatePrice(int id, BigDecimal price);
 
     /**
-     * ログテーブルに記録する（rollback確認用）。
-     * まだログテーブルが無ければ作成する必要があります。
+     * 商品操作に関するログを記録する。
      *
      * @param productId 商品ID
      * @param action    実施アクション

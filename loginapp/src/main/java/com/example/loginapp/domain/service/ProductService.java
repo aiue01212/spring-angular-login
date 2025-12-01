@@ -1,6 +1,8 @@
 package com.example.loginapp.domain.service;
 
 import com.example.loginapp.domain.model.Product;
+
+import java.math.BigDecimal;
 import java.util.List;
 
 /**
@@ -34,5 +36,5 @@ public interface ProductService {
      * @param price2 商品2の新価格
      * @throws RuntimeException ロールバック確認のため常に発生
      */
-    void updateTwoProductsWithRollback(int id1, double price1, int id2, double price2);
+    void updateTwoProductsWithRollback(int id1, BigDecimal price1, int id2, BigDecimal price2);
 }

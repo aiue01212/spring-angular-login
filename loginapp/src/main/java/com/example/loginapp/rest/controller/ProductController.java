@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 
 import static com.example.loginapp.rest.constants.MessageKeys.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
@@ -137,7 +138,8 @@ public class ProductController {
         log.info("API開始: /products/update-test");
         try {
             UpdateTwoProductsOutputData outputData = updateProductsUseCase.handle(
-                    new UpdateTwoProductsInputData(PRODUCT_ID_1, PRICE_PRODUCT_1, PRODUCT_ID_2, PRICE_PRODUCT_2));
+                    new UpdateTwoProductsInputData(PRODUCT_ID_1, BigDecimal.valueOf(PRICE_PRODUCT_1), PRODUCT_ID_2,
+                            BigDecimal.valueOf(PRICE_PRODUCT_2)));
 
             if (!outputData.isSuccess()) {
                 String errorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED,

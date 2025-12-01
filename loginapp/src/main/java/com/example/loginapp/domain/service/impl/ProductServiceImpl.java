@@ -8,8 +8,9 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Locale;
 
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_ROLLBACK_TEST;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.context.MessageSource;
@@ -63,7 +64,7 @@ public class ProductServiceImpl implements ProductService {
      */
     @Override
     @Transactional
-    public void updateTwoProductsWithRollback(int id1, double price1, int id2, double price2) {
+    public void updateTwoProductsWithRollback(int id1, BigDecimal price1, int id2, BigDecimal price2) {
 
         productRepository.updatePrice(id1, price1);
         productRepository.updatePrice(id2, price2);

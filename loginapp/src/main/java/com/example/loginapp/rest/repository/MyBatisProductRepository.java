@@ -1,5 +1,6 @@
 package com.example.loginapp.rest.repository;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Mapper;
@@ -41,7 +42,7 @@ public interface MyBatisProductRepository extends ProductRepository {
      */
     @Update("UPDATE products SET price = #{price} WHERE id = #{id}")
     @Override
-    void updatePrice(@Param("id") int id, @Param("price") double price);
+    void updatePrice(@Param("id") int id, @Param("price") BigDecimal price);
 
     /**
      * ログテーブルに記録する（rollback確認用）。

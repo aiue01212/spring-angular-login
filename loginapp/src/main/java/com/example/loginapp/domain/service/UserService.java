@@ -3,13 +3,12 @@ package com.example.loginapp.domain.service;
 import com.example.loginapp.domain.model.User;
 
 /**
- * ユーザ情報に関するドメインサービスインターフェース。
- * ユーザ検索および登録処理を定義する。
+ * ユーザー情報に関するドメインサービスのインターフェース。
  */
 public interface UserService {
 
     /**
-     * ユーザ名を指定してユーザ情報を取得する。
+     * 指定されたユーザー名とパスワードで認証を行う。
      *
      * @param username ユーザ名
      * @return ユーザ情報。存在しない場合は null
