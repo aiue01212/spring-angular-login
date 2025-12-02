@@ -8,7 +8,7 @@ import com.example.loginapp.domain.model.User;
 public interface UserService {
 
     /**
-     * 指定されたユーザー名とパスワードで認証を行う。
+     * 指定されたユーザ名でユーザ情報を取得する。
      *
      * @param username ユーザ名
      * @return ユーザ情報。存在しない場合は null

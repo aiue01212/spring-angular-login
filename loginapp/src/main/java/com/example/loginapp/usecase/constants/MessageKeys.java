@@ -10,4 +10,6 @@ public final class MessageKeys {
 
     /** ロールバックテスト用エラーメッセージ */
     public static final String ERROR_ROLLBACK_TEST = "error.rollbackTest";
+
+    public static final String ERROR_PRODUCT_NOT_FOUND_ID = "error.productNotFoundWithId";
 }

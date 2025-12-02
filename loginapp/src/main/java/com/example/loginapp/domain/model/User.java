@@ -30,4 +30,11 @@ public class User {
      */
     @Column(nullable = false)
     private String password;
+
+    /**
+     * パスワード一致判定
+     */
+    public boolean isPasswordMatch(String rawPassword) {
+        return password != null && password.equals(rawPassword);
+    }
 }

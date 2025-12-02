@@ -14,8 +14,11 @@ public final class UseCaseErrorCodes {
     /** 商品が見つからない場合のエラー */
     public static final String PRODUCT_NOT_FOUND = "PRODUCT_NOT_FOUND";
 
-    /** ロールバックが発生した場合のエラー */
-    public static final String ROLLBACK_OCCURRED = "ROLLBACK_OCCURRED";
+    /** 商品 ID 指定時に該当商品が見つからない場合のエラー */
+    public static final String ERROR_PRODUCT_NOT_FOUND_ID = "ERROR_PRODUCT_NOT_FOUND_ID";
+
+    /** トランザクションロールバックが発生した場合のエラー */
+    public static final String ROLLBACK_ERROR = "ROLLBACK_ERROR";
 
     private UseCaseErrorCodes() {
     }

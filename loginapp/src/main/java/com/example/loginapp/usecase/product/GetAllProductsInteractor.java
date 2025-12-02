@@ -6,7 +6,6 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.List;
 import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
 
 import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.DB_ERROR;
 
@@ -15,7 +14,6 @@ import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.DB_ERROR;
  * ドメインサービスを利用して商品を取得し、
  * OutputData を生成して返す。
  */
-@Service
 @RequiredArgsConstructor
 public class GetAllProductsInteractor implements GetAllProductsInputBoundary {
 

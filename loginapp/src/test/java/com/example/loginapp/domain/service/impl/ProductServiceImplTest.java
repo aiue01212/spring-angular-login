@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static com.example.loginapp.rest.constants.MessageKeys.ERROR_ROLLBACK_TEST;
+import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_ROLLBACK_TEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -31,18 +31,18 @@ import static org.mockito.Mockito.*;
 class ProductServiceImplTest {
 
     /** テスト用固定 ID1 */
-    private static final int PRODUCT_ID_1 = 1;
+    private static final int ID_IPHONE = 1;
 
     /** テスト用固定 ID2 */
-    private static final int PRODUCT_ID_2 = 2;
+    private static final int ID_GALAXY = 2;
 
     /** テスト用商品名 */
-    private static final String PRODUCT_NAME_IPHONE = "iPhone";
-    private static final String PRODUCT_NAME_GALAXY = "Galaxy";
+    private static final String NAME_IPHONE = "iPhone";
+    private static final String NAME_GALAXY = "Galaxy";
 
     /** テスト用価格 */
-    private static final int PRICE_IPHONE = 120000;
-    private static final int PRICE_GALAXY = 98000;
+    private static final BigDecimal PRICE_IPHONE = BigDecimal.valueOf(120000);
+    private static final BigDecimal PRICE_GALAXY = BigDecimal.valueOf(98000);
 
     /** ロールバックテスト用メッセージ */
     private static final String MSG_ROLLBACK_ERROR = "Rollback test error";
@@ -76,15 +76,15 @@ class ProductServiceImplTest {
     @Test
     void getAllProducts_ReturnsProductList() {
         List<Product> mockList = Arrays.asList(
-                new Product(PRODUCT_ID_1, PRODUCT_NAME_IPHONE, BigDecimal.valueOf(PRICE_IPHONE)),
-                new Product(PRODUCT_ID_2, PRODUCT_NAME_GALAXY, BigDecimal.valueOf(PRICE_GALAXY)));
+                new Product(ID_IPHONE, NAME_IPHONE, PRICE_IPHONE),
+                new Product(ID_GALAXY, NAME_GALAXY, PRICE_GALAXY));
 
         when(productRepository.findAll()).thenReturn(mockList);
 
         List<Product> result = productService.getAllProducts();
 
         assertThat(result).hasSize(EXPECTED_PRODUCT_COUNT);
-        assertThat(result.get(FIRST_INDEX).getName()).isEqualTo(PRODUCT_NAME_IPHONE);
+        assertThat(result.get(FIRST_INDEX).getName()).isEqualTo(NAME_IPHONE);
         verify(productRepository, times(ONCE)).findAll();
     }
 
@@ -93,14 +93,14 @@ class ProductServiceImplTest {
      */
     @Test
     void getProductById_ReturnsProduct() {
-        Product product = new Product(PRODUCT_ID_1, PRODUCT_NAME_IPHONE, BigDecimal.valueOf(PRICE_IPHONE));
+        Product product = new Product(ID_IPHONE, NAME_IPHONE, PRICE_IPHONE);
 
-        when(productRepository.findById(PRODUCT_ID_1)).thenReturn(product);
+        when(productRepository.findById(ID_IPHONE)).thenReturn(product);
 
-        Product result = productService.getProductById(PRODUCT_ID_1);
+        Product result = productService.getProductById(ID_IPHONE);
 
         assertThat(result).isNotNull();
-        assertThat(result.getName()).isEqualTo(PRODUCT_NAME_IPHONE);
+        assertThat(result.getName()).isEqualTo(NAME_IPHONE);
     }
 
     /**
@@ -108,18 +108,18 @@ class ProductServiceImplTest {
      * トランザクションロールバックが意図通り動作することを確認する。
      */
     @Test
-    void updateTwoProductsWithRollback_ThrowsRuntimeException() {
+    void updateTwoProductsWithRollback_ThrowsException() {
         when(messageSource.getMessage(eq(ERROR_ROLLBACK_TEST), any(), any(Locale.class)))
                 .thenReturn(MSG_ROLLBACK_ERROR);
 
         RuntimeException ex = assertThrows(RuntimeException.class,
                 () -> productService.updateTwoProductsWithRollback(
-                        PRODUCT_ID_1, PRICE_UPDATE_1,
-                        PRODUCT_ID_2, PRICE_UPDATE_2));
+                        ID_IPHONE, PRICE_UPDATE_1,
+                        ID_GALAXY, PRICE_UPDATE_2));
 
         assertThat(ex.getMessage()).isEqualTo(MSG_ROLLBACK_ERROR);
 
-        verify(productRepository, times(ONCE)).updatePrice(PRODUCT_ID_1, PRICE_UPDATE_1);
-        verify(productRepository, times(ONCE)).updatePrice(PRODUCT_ID_2, PRICE_UPDATE_2);
+        verify(productRepository, times(ONCE)).updatePrice(ID_IPHONE, PRICE_UPDATE_1);
+        verify(productRepository, times(ONCE)).updatePrice(ID_GALAXY, PRICE_UPDATE_2);
     }
 }

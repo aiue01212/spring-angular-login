@@ -2,12 +2,13 @@ package com.example.loginapp.usecase.product;
 
 import com.example.loginapp.domain.service.ProductService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import org.springframework.dao.DataAccessException;
+
+import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
 
 /**
  * 商品の2件更新（ロールバック確認用）を行う Interactor。
  */
-@Service
 @RequiredArgsConstructor
 public class UpdateTwoProductsInteractor implements UpdateTwoProductsInputBoundary {
 
@@ -26,10 +27,10 @@ public class UpdateTwoProductsInteractor implements UpdateTwoProductsInputBounda
                     input.getId2(),
                     input.getPrice2());
 
-        } catch (Exception e) {
-            return new UpdateTwoProductsOutputData(false, e.getMessage());
-        }
+            return new UpdateTwoProductsOutputData(true, null);
 
-        return new UpdateTwoProductsOutputData(true, null);
+        } catch (DataAccessException e) {
+            return new UpdateTwoProductsOutputData(false, ROLLBACK_ERROR);
+        }
     }
 }

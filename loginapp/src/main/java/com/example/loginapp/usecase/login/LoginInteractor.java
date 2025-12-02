@@ -3,7 +3,6 @@ package com.example.loginapp.usecase.login;
 import com.example.loginapp.domain.model.User;
 import com.example.loginapp.domain.service.UserService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import com.example.loginapp.usecase.constants.UseCaseErrorCodes;
 
 import org.springframework.dao.DataAccessException;
@@ -13,7 +12,6 @@ import org.springframework.dao.DataAccessException;
  * 入力（InputData）を受け取り、ドメインサービスを使用して
  * ビジネスロジックを実行し、OutputData を返す。
  */
-@Service
 @RequiredArgsConstructor
 public class LoginInteractor implements LoginInputBoundary {
 
@@ -31,7 +29,7 @@ public class LoginInteractor implements LoginInputBoundary {
             return new LoginOutputData(false, null, UseCaseErrorCodes.DB_ERROR);
         }
 
-        if (user == null || !user.getPassword().equals(input.getPassword())) {
+        if (user == null || !user.isPasswordMatch(input.getPassword())) {
             return new LoginOutputData(false, null, UseCaseErrorCodes.INVALID_CREDENTIALS);
         }
 

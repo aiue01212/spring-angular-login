@@ -14,6 +14,7 @@ import java.math.BigDecimal;
 import java.util.List;
 
 import org.springframework.context.MessageSource;
+import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -70,6 +71,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.updatePrice(id2, price2);
 
         String rollbackMsg = messageSource.getMessage(ERROR_ROLLBACK_TEST, null, Locale.getDefault());
-        throw new RuntimeException(rollbackMsg);
+        throw new DataAccessException(rollbackMsg) {
+        };
     }
 }

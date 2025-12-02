@@ -5,15 +5,13 @@ import com.example.loginapp.domain.service.ProductService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.dao.DataAccessException;
-import org.springframework.stereotype.Service;
 
-import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.DB_ERROR;
+import static com.example.loginapp.usecase.constants.MessageKeys.*;
 
 /**
  * 商品ID指定取得処理を実行する Interactor。
  */
-@Service
 @RequiredArgsConstructor
 public class GetProductByIdInteractor implements GetProductByIdInputBoundary {
 
