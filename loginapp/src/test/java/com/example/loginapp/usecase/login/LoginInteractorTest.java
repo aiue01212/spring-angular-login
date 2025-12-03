@@ -13,15 +13,24 @@ import static com.example.loginapp.usecase.constants.Constants.*;
 
 class LoginInteractorTest {
 
+    /** ユーザー情報の取得を担当するドメインサービス */
     private UserService userService;
+
+    /** ログイン処理を行うユースケースの実装クラス */
     private LoginInteractor loginInteractor;
 
+    /**
+     * 各テストメソッド実行前に共通のセットアップを行う。
+     */
     @BeforeEach
     void setUp() {
         userService = mock(UserService.class);
         loginInteractor = new LoginInteractor(userService);
     }
 
+    /**
+     * 正常にログインできる場合の動作を検証する。
+     */
     @Test
     void testLoginSuccess() {
         User user = new User();
@@ -38,6 +47,9 @@ class LoginInteractorTest {
         assertNull(output.getErrorCode());
     }
 
+    /**
+     * パスワードが誤っている場合、認証エラーが返されることを検証する。
+     */
     @Test
     void testLoginInvalidPassword() {
         User user = new User();
@@ -53,6 +65,9 @@ class LoginInteractorTest {
         assertEquals(INVALID_CREDENTIALS, output.getErrorCode());
     }
 
+    /**
+     * ユーザーが存在しない場合、認証エラーが返されることを検証する。
+     */
     @Test
     void testLoginUserNotFound() {
         when(userService.findUser(NON_EXISTENT_USERNAME)).thenReturn(null);
@@ -64,6 +79,9 @@ class LoginInteractorTest {
         assertEquals(INVALID_CREDENTIALS, output.getErrorCode());
     }
 
+    /**
+     * データアクセス例外が発生した場合、DBエラーコードが返されることを検証する。
+     */
     @Test
     void testLoginDataAccessException() {
         when(userService.findUser(VALID_USERNAME)).thenThrow(new DataAccessException(DB_ERROR) {

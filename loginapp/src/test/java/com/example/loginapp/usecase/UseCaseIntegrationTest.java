@@ -14,24 +14,43 @@ import static com.example.loginapp.usecase.constants.Constants.*;
 import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_PRODUCT_NOT_FOUND_ID;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * ユースケース統合テストクラス。
+ */
 @SpringBootTest
 public class UseCaseIntegrationTest {
 
+    /**
+     * ログインユースケースのインターフェース。
+     */
     @Autowired
     private LoginInputBoundary loginInteractor;
 
+    /**
+     * 全商品取得ユースケースのインターフェース。
+     */
     @Autowired
     private GetAllProductsInputBoundary getAllProductsInteractor;
 
+    /**
+     * 商品ID指定取得ユースケースのインターフェース。
+     */
     @Autowired
     private GetProductByIdInputBoundary getProductByIdInteractor;
 
+    /**
+     * 2商品同時更新ユースケースのインターフェース。
+     */
     @Autowired
     private UpdateTwoProductsInputBoundary updateTwoProductsInteractor;
 
     // ----------------------------
     // LoginInteractor 統合テスト
     // ----------------------------
+
+    /**
+     * 正しいユーザー名とパスワードでログインできることを検証する。
+     */
     @Test
     void testLoginSuccess() {
         LoginInputData input = new LoginInputData(VALID_USERNAME, VALID_PASSWORD);
@@ -42,6 +61,9 @@ public class UseCaseIntegrationTest {
         assertNull(output.getErrorCode());
     }
 
+    /**
+     * パスワードが間違っている場合、ログイン失敗となることを検証する。
+     */
     @Test
     void testLoginInvalidPassword() {
         LoginInputData input = new LoginInputData(VALID_USERNAME, INVALID_PASSWORD);
@@ -54,6 +76,11 @@ public class UseCaseIntegrationTest {
     // ----------------------------
     // GetAllProductsInteractor 統合テスト
     // ----------------------------
+
+    /**
+     * 全商品の取得が正常に行えることを検証する。
+     * 取得した商品に iPhone と Galaxy が含まれていることを確認する。
+     */
     @Test
     void testGetAllProducts() {
         GetAllProductsOutputData output = getAllProductsInteractor.handle(new GetAllProductsInputData());
@@ -82,6 +109,10 @@ public class UseCaseIntegrationTest {
     // ----------------------------
     // GetProductByIdInteractor 統合テスト
     // ----------------------------
+
+    /**
+     * ID指定で iPhone を取得できることを検証する。
+     */
     @Test
     void testGetProductByIdSuccess() {
         GetProductByIdOutputData output = getProductByIdInteractor
@@ -92,6 +123,9 @@ public class UseCaseIntegrationTest {
         assertEquals(PRODUCT_ID_IPHONE, output.getProduct().getId());
     }
 
+    /**
+     * 存在しない商品IDを指定した場合、適切にエラーが返ることを検証する。
+     */
     @Test
     void testGetProductByIdNotFound() {
         GetProductByIdOutputData output = getProductByIdInteractor
@@ -104,6 +138,11 @@ public class UseCaseIntegrationTest {
     // ----------------------------
     // UpdateTwoProductsInteractor 統合テスト
     // ----------------------------
+
+    /**
+     * 2商品同時更新が正常に動作するかを検証する。
+     * ※このテストでは実際のトランザクションロールバックの挙動を確認。
+     */
     @Test
     void testUpdateTwoProductsSuccess() {
         UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(

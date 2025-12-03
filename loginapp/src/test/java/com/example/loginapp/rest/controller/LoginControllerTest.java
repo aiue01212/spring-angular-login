@@ -106,6 +106,9 @@ class LoginControllerTest {
          */
         @Test
         void sessionActiveTest() throws Exception {
+
+                when(sessionService.isSessionValid(any())).thenReturn(true);
+
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());

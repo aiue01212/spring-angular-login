@@ -1,10 +1,10 @@
 package com.example.loginapp.rest.interceptor;
 
 import com.example.loginapp.rest.annotation.SessionRequired;
-import com.example.loginapp.rest.config.SessionProperties;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.SessionCheckResponse;
 import com.example.loginapp.rest.model.SuccessResponse;
+import com.example.loginapp.rest.service.SessionService;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -38,8 +38,8 @@ public class SessionValidator {
     /** メッセージソース */
     private final MessageSource messageSource;
 
-    /** セッション設定情報 */
-    private final SessionProperties sessionProperties;
+    /** セッション管理に関する処理を提供するサービス */
+    private final SessionService sessionService;
 
     /**
      * ログ出力用のLogger
@@ -76,7 +76,7 @@ public class SessionValidator {
             return unauthorized(ERROR_NOT_LOGGED_IN, locale);
         }
 
-        if (isSessionExpired(session)) {
+        if (!sessionService.isSessionValid(session)) {
             try {
                 session.invalidate();
             } catch (IllegalStateException e) {
@@ -167,15 +167,6 @@ public class SessionValidator {
         Boolean isLoggedIn = (Boolean) session.getAttribute(IS_LOGGED_IN);
         Object loginTime = session.getAttribute(LOGIN_TIME);
         return !Boolean.TRUE.equals(isLoggedIn) || !(loginTime instanceof Number);
-    }
-
-    /**
-     * セッションの有効期限切れを判定する。
-     */
-    private boolean isSessionExpired(HttpSession session) {
-        Long loginTime = (Long) session.getAttribute(LOGIN_TIME);
-        long elapsed = System.currentTimeMillis() - loginTime;
-        return elapsed > sessionProperties.getTimeoutMillis();
     }
 
     /**

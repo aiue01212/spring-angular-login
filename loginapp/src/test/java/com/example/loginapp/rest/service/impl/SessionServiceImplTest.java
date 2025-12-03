@@ -1,6 +1,8 @@
 package com.example.loginapp.rest.service.impl;
 
+import com.example.loginapp.rest.config.SessionProperties;
 import com.example.loginapp.rest.service.SessionService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpSession;
 
@@ -16,7 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class SessionServiceImplTest {
 
     /** テスト対象のサービス */
-    private final SessionService sessionService = new SessionServiceImpl();
+    private SessionService sessionService;
+
+    /** セッションに関する設定値を保持するプロパティクラス */
+    private SessionProperties sessionProperties;
 
     /** セッションの有効期限（ミリ秒） */
     private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
@@ -32,6 +37,16 @@ class SessionServiceImplTest {
 
     /** テスト用ユーザー名 */
     private static final String TEST_USERNAME = "test-user";
+
+    /**
+     * テスト前のセットアップ
+     */
+    @BeforeEach
+    void setUp() {
+        sessionProperties = new SessionProperties();
+        sessionProperties.setTimeoutMillis(SESSION_TIMEOUT_MILLIS);
+        sessionService = new SessionServiceImpl(sessionProperties);
+    }
 
     /**
      * createLoginSession() がセッション属性を正しく設定することを確認。

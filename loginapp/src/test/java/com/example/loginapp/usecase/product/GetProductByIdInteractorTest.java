@@ -16,15 +16,28 @@ import static org.mockito.Mockito.*;
 
 public class GetProductByIdInteractorTest {
 
+    /**
+     * 商品情報取得用のサービスモック。
+     */
     private ProductService productService;
+
+    /**
+     * 商品ID指定で取得するユースケースのインタラクター。
+     */
     private GetProductByIdInteractor interactor;
 
+    /**
+     * 各テスト実行前にサービスモックとインタラクターを初期化する。
+     */
     @BeforeEach
     void setUp() {
         productService = mock(ProductService.class);
         interactor = new GetProductByIdInteractor(productService);
     }
 
+    /**
+     * iPhone の取得が正常に行えることを検証する。
+     */
     @Test
     void testHandleSuccess_iPhone() {
         Product product = new Product(PRODUCT_ID_IPHONE, PRODUCT_NAME_IPHONE, BigDecimal.valueOf(PRICE_IPHONE));
@@ -37,6 +50,9 @@ public class GetProductByIdInteractorTest {
         assertNull(output.getErrorCode());
     }
 
+    /**
+     * Galaxy の取得が正常に行えることを検証する。
+     */
     @Test
     void testHandleSuccess_Galaxy() {
         Product product = new Product(PRODUCT_ID_GALAXY, PRODUCT_NAME_GALAXY, BigDecimal.valueOf(PRICE_GALAXY));
@@ -49,6 +65,9 @@ public class GetProductByIdInteractorTest {
         assertNull(output.getErrorCode());
     }
 
+    /**
+     * 商品が存在しない場合、適切にエラーコードが返されることを検証する。
+     */
     @Test
     void testHandleProductNotFound() {
         when(productService.getProductById(PRODUCT_ID_NOT_FOUND)).thenReturn(null);
@@ -60,6 +79,9 @@ public class GetProductByIdInteractorTest {
         assertEquals(String.valueOf(PRODUCT_ID_NOT_FOUND), output.getErrorDetail());
     }
 
+    /**
+     * データベース例外発生時に適切にエラーが返されることを検証する。
+     */
     @Test
     void testHandleDatabaseError() {
         when(productService.getProductById(PRODUCT_ID_IPHONE)).thenThrow(new DataAccessException(DB_ERROR) {

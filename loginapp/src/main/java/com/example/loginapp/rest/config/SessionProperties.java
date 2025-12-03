@@ -1,15 +1,15 @@
 package com.example.loginapp.rest.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.support.ResourceBundleMessageSource;
+import org.springframework.stereotype.Component;
 
 import com.example.loginapp.rest.constants.MessageKeys;
 
 /**
  * セッション関連の設定を保持するクラス。
  */
-@Configuration
+@Component
 @ConfigurationProperties(prefix = "session")
 public class SessionProperties {
 

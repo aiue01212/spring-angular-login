@@ -16,11 +16,24 @@ import static org.mockito.Mockito.*;
 
 public class GetAllProductsInteractorTest {
 
+    /**
+     * 商品情報を取得するドメインサービスのモック。
+     */
     private ProductService productService;
+
+    /**
+     * 全商品取得ユースケースのインタラクター。
+     */
     private GetAllProductsInteractor interactor;
 
+    /**
+     * テスト用の商品リスト。
+     */
     private List<Product> dummyList;
 
+    /**
+     * 各テスト実行前にサービスのモックとインタラクターを初期化する。
+     */
     @BeforeEach
     void setUp() {
         productService = mock(ProductService.class);
@@ -31,6 +44,9 @@ public class GetAllProductsInteractorTest {
                 new Product(PRODUCT_ID_GALAXY, PRODUCT_NAME_GALAXY, PRICE_GALAXY_BD));
     }
 
+    /**
+     * 全商品の取得が正常に行えることを検証する。
+     */
     @Test
     void testHandleSuccess() {
         when(productService.getAllProducts()).thenReturn(dummyList);
@@ -44,6 +60,9 @@ public class GetAllProductsInteractorTest {
         assertNull(output.getErrorCode());
     }
 
+    /**
+     * データベース例外発生時に適切にエラーが返されることを検証する。
+     */
     @Test
     void testHandleDatabaseError() {
         when(productService.getAllProducts()).thenThrow(new DataAccessException(DB_ERROR) {

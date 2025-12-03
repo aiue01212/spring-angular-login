@@ -1,8 +1,10 @@
 package com.example.loginapp.rest.service.impl;
 
+import com.example.loginapp.rest.config.SessionProperties;
 import com.example.loginapp.rest.service.SessionService;
 
 import jakarta.servlet.http.HttpSession;
+import lombok.RequiredArgsConstructor;
 
 import static com.example.loginapp.rest.constants.SessionKeys.*;
 
@@ -13,10 +15,11 @@ import org.springframework.stereotype.Service;
  * ログイン情報の登録、セッション無効化、有効期限チェックを行う。
  */
 @Service
+@RequiredArgsConstructor
 public class SessionServiceImpl implements SessionService {
 
-    /** セッションの有効期限（ミリ秒） */
-    private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
+    /** セッションに関する設定値を保持するプロパティクラス */
+    private final SessionProperties sessionProperties;
 
     /**
      * ログイン情報をセッションに登録する。
@@ -50,7 +53,11 @@ public class SessionServiceImpl implements SessionService {
             return false;
         }
 
+        if (!((Boolean) isLoggedIn)) {
+            return false;
+        }
+
         long elapsed = System.currentTimeMillis() - (Long) loginTime;
-        return (Boolean) isLoggedIn && elapsed <= SESSION_TIMEOUT_MILLIS;
+        return elapsed <= sessionProperties.getTimeoutMillis();
     }
 }

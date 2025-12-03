@@ -1,11 +1,11 @@
 package com.example.loginapp.rest.interceptor;
 
 import com.example.loginapp.rest.annotation.SessionRequired;
-import com.example.loginapp.rest.config.SessionProperties;
 import com.example.loginapp.rest.constants.MessageKeys;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.SessionCheckResponse;
 import com.example.loginapp.rest.model.SuccessResponse;
+import com.example.loginapp.rest.service.SessionService;
 
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
@@ -43,10 +43,8 @@ class SessionValidatorTest {
          */
         private MessageSource messageSource;
 
-        /**
-         * セッションタイムアウト値などを保持する {@link SessionProperties}。
-         */
-        private SessionProperties sessionProperties;
+        /** セッション管理に関する処理を提供するサービス */
+        private SessionService sessionService;
 
         /** セッション有効期限 */
         private static final long SESSION_TIMEOUT_MILLIS = 60_000L;
@@ -81,9 +79,8 @@ class SessionValidatorTest {
         @BeforeEach
         void setUp() {
                 messageSource = mock(MessageSource.class);
-                sessionProperties = new SessionProperties();
-                sessionProperties.setTimeoutMillis(SESSION_TIMEOUT_MILLIS);
-                validator = new SessionValidator(messageSource, sessionProperties);
+                sessionService = mock(SessionService.class);
+                validator = new SessionValidator(messageSource, sessionService);
 
                 when(messageSource.getMessage(eq(ERROR_NOT_LOGGED_IN), any(), any(Locale.class)))
                                 .thenReturn(MSG_NOT_LOGGED_IN);
@@ -162,6 +159,9 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
 
@@ -248,6 +248,9 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
 
@@ -282,6 +285,9 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.JAPANESE;
@@ -318,6 +324,9 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.JAPANESE;
@@ -358,6 +367,9 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 SessionRequired sessionRequired = mock(SessionRequired.class);
                 Locale locale = Locale.getDefault();
@@ -418,6 +430,8 @@ class SessionValidatorTest {
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
 
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 Signature signatureMock = mockSignature();
                 when(joinPoint.getSignature()).thenReturn(signatureMock);
@@ -448,6 +462,8 @@ class SessionValidatorTest {
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
 
+                when(sessionService.isSessionValid(session)).thenReturn(true);
+
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 Signature signatureMock = mockSignature();
                 when(joinPoint.getSignature()).thenReturn(signatureMock);
@@ -477,6 +493,8 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
 
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 Signature signatureMock = mockSignature();
@@ -510,6 +528,8 @@ class SessionValidatorTest {
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
+
+                when(sessionService.isSessionValid(session)).thenReturn(true);
 
                 ProceedingJoinPoint joinPoint = mock(ProceedingJoinPoint.class);
                 Signature signatureMock = mockSignature();
