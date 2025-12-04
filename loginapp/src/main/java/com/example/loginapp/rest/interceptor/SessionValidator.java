@@ -18,7 +18,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 import static com.example.loginapp.rest.constants.SessionKeys.*;
 
 import java.util.Locale;

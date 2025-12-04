@@ -18,7 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
 
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
 
 import java.util.Locale;

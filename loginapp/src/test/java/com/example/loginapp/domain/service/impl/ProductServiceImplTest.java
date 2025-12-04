@@ -14,7 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_ROLLBACK_TEST;
+import static com.example.loginapp.domain.constants.MessageKeys.ERROR_ROLLBACK_TEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;

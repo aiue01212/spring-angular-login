@@ -31,7 +31,7 @@ public interface MyBatisUserRepository extends UserRepository {
      *
      * @param user 保存するユーザ情報
      */
-    @Insert("INSERT INTO users (username, password) VALUES (#{username}, #{password}")
+    @Insert("INSERT INTO users (username, password) VALUES (#{username}, #{password})")
     @Override
     void insertUser(User user);
 }

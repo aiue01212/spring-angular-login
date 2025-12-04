@@ -1,7 +1,7 @@
 package com.example.loginapp.rest.interceptor;
 
+import com.example.loginapp.domain.constants.MessageKeys;
 import com.example.loginapp.rest.annotation.SessionRequired;
-import com.example.loginapp.rest.constants.MessageKeys;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.SessionCheckResponse;
 import com.example.loginapp.rest.model.SuccessResponse;
@@ -19,7 +19,7 @@ import org.springframework.mock.web.MockHttpSession;
 
 import java.util.Locale;
 
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 import static com.example.loginapp.rest.constants.SessionKeys.*;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;

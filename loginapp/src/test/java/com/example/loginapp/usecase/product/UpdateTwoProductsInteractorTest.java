@@ -36,9 +36,7 @@ public class UpdateTwoProductsInteractorTest {
      */
     @Test
     void testHandleSuccess() {
-        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
-                PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
-                PRODUCT_ID_GALAXY, PRICE_UPDATE_2);
+        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData();
 
         doNothing().when(productService).updateTwoProductsWithRollback(
                 PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
@@ -55,9 +53,7 @@ public class UpdateTwoProductsInteractorTest {
      */
     @Test
     void testHandleDatabaseError() {
-        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
-                PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
-                PRODUCT_ID_GALAXY, PRICE_UPDATE_2);
+        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData();
 
         doThrow(new DataAccessException(DB_ERROR) {
         })

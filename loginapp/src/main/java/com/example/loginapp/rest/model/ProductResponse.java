@@ -8,7 +8,7 @@ import java.util.List;
 import com.example.loginapp.domain.model.Product;
 
 /**
- * 商品取得レスポンス（成功時のみ使用）
+ * 商品情報返却用のレスポンス DTO。
  */
 @Data
 @AllArgsConstructor

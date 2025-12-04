@@ -9,9 +9,10 @@ import com.example.loginapp.usecase.product.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
+
 import static com.example.loginapp.usecase.constants.Constants.*;
-import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_PRODUCT_NOT_FOUND_ID;
+import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
+import static com.example.loginapp.domain.constants.MessageKeys.ERROR_PRODUCT_NOT_FOUND_ID;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -145,9 +146,7 @@ public class UseCaseIntegrationTest {
      */
     @Test
     void testUpdateTwoProductsSuccess() {
-        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
-                PRODUCT_ID_IPHONE, PRICE_IPHONE_BD,
-                PRODUCT_ID_GALAXY, PRICE_GALAXY_BD);
+        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData();
 
         UpdateTwoProductsOutputData output = updateTwoProductsInteractor.handle(input);
 

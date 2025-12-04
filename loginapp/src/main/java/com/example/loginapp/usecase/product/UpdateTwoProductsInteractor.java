@@ -4,6 +4,7 @@ import com.example.loginapp.domain.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DataAccessException;
 
+import static com.example.loginapp.usecase.constants.UseCaseConstants.*;
 import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
 
 /**
@@ -22,10 +23,8 @@ public class UpdateTwoProductsInteractor implements UpdateTwoProductsInputBounda
 
         try {
             productService.updateTwoProductsWithRollback(
-                    input.getId1(),
-                    input.getPrice1(),
-                    input.getId2(),
-                    input.getPrice2());
+                    PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
+                    PRODUCT_ID_GALAXY, PRICE_UPDATE_2);
 
             return new UpdateTwoProductsOutputData(true, null);
 

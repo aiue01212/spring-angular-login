@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 
 /**
- * エラー時のレスポンスを返すDTOクラス
+ * API エラー応答を表すレスポンス DTO
  */
 @Data
 @AllArgsConstructor

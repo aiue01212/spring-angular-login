@@ -29,7 +29,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 import static com.example.loginapp.rest.constants.SessionKeys.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;

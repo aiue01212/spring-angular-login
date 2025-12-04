@@ -8,9 +8,9 @@ import org.springframework.dao.DataAccessException;
 
 import java.math.BigDecimal;
 
+import static com.example.loginapp.domain.constants.MessageKeys.ERROR_PRODUCT_NOT_FOUND_ID;
 import static com.example.loginapp.usecase.constants.Constants.*;
 import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.DB_ERROR;
-import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_PRODUCT_NOT_FOUND_ID;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 

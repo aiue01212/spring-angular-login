@@ -6,8 +6,8 @@ import lombok.RequiredArgsConstructor;
 
 import org.springframework.dao.DataAccessException;
 
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.DB_ERROR;
-import static com.example.loginapp.usecase.constants.MessageKeys.*;
 
 /**
  * 商品ID指定取得処理を実行する Interactor。

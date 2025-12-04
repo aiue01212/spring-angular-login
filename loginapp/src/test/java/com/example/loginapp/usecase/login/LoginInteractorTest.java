@@ -8,8 +8,8 @@ import org.springframework.dao.DataAccessException;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
-import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
 import static com.example.loginapp.usecase.constants.Constants.*;
+import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
 
 class LoginInteractorTest {
 

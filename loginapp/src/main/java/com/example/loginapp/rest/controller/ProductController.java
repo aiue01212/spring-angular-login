@@ -25,9 +25,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import static com.example.loginapp.rest.constants.MessageKeys.*;
+import static com.example.loginapp.domain.constants.MessageKeys.*;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
 import org.slf4j.Logger;
@@ -57,12 +56,6 @@ public class ProductController {
      * ログ出力用のLogger
      */
     private static final Logger log = LoggerFactory.getLogger(ProductController.class);
-
-    /** 処理中に使用されるメッセージ定数をまとめた定義。 */
-    private static final int PRODUCT_ID_1 = 1;
-    private static final int PRODUCT_ID_2 = 2;
-    private static final double PRICE_PRODUCT_1 = 130000.0;
-    private static final double PRICE_PRODUCT_2 = 99000.0;
 
     /**
      * 商品一覧を取得する。
@@ -137,9 +130,7 @@ public class ProductController {
     public ResponseEntity<ErrorResponse> updateTest(HttpSession session, Locale locale) {
         log.info("API開始: /products/update-test");
         try {
-            UpdateTwoProductsOutputData outputData = updateProductsUseCase.handle(
-                    new UpdateTwoProductsInputData(PRODUCT_ID_1, BigDecimal.valueOf(PRICE_PRODUCT_1), PRODUCT_ID_2,
-                            BigDecimal.valueOf(PRICE_PRODUCT_2)));
+            UpdateTwoProductsOutputData outputData = updateProductsUseCase.handle(new UpdateTwoProductsInputData());
 
             if (!outputData.isSuccess()) {
                 String errorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED,

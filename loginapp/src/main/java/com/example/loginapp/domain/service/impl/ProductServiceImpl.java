@@ -8,7 +8,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Locale;
 
-import static com.example.loginapp.usecase.constants.MessageKeys.ERROR_ROLLBACK_TEST;
+import static com.example.loginapp.domain.constants.MessageKeys.ERROR_ROLLBACK_TEST;
 
 import java.math.BigDecimal;
 import java.util.List;

@@ -2,6 +2,9 @@ package com.example.loginapp.domain.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 
 /**
  * ユーザ情報を管理するエンティティ。
@@ -10,6 +13,8 @@ import lombok.Data;
 @Entity
 @Table(name = "users")
 @Data
+@NoArgsConstructor
+@RequiredArgsConstructor
 public class User {
 
     /**
@@ -22,12 +27,14 @@ public class User {
     /**
      * ユーザ名（ユニーク、必須）
      */
+    @NonNull
     @Column(nullable = false, unique = true)
     private String username;
 
     /**
      * パスワード（必須）
      */
+    @NonNull
     @Column(nullable = false)
     private String password;
 
