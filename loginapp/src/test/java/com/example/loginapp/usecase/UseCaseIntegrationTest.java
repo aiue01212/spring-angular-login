@@ -146,7 +146,9 @@ public class UseCaseIntegrationTest {
      */
     @Test
     void testUpdateTwoProductsSuccess() {
-        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData();
+        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
+                PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
+                PRODUCT_ID_GALAXY, PRICE_UPDATE_2);
 
         UpdateTwoProductsOutputData output = updateTwoProductsInteractor.handle(input);
 

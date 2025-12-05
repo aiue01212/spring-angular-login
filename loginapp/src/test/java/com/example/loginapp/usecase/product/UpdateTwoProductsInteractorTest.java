@@ -53,7 +53,9 @@ public class UpdateTwoProductsInteractorTest {
      */
     @Test
     void testHandleDatabaseError() {
-        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData();
+        UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
+                PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
+                PRODUCT_ID_GALAXY, PRICE_UPDATE_2);
 
         doThrow(new DataAccessException(DB_ERROR) {
         })

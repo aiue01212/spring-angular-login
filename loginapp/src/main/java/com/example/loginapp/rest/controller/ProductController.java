@@ -26,6 +26,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import static com.example.loginapp.domain.constants.MessageKeys.*;
+import static com.example.loginapp.rest.constants.UpdateConstants.*;
 
 import java.util.List;
 import java.util.Locale;
@@ -130,7 +131,13 @@ public class ProductController {
     public ResponseEntity<ErrorResponse> updateTest(HttpSession session, Locale locale) {
         log.info("API開始: /products/update-test");
         try {
-            UpdateTwoProductsOutputData outputData = updateProductsUseCase.handle(new UpdateTwoProductsInputData());
+            UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
+                    PRODUCT_ID_1,
+                    PRICE_UPDATE_1,
+                    PRODUCT_ID_2,
+                    PRICE_UPDATE_2);
+
+            UpdateTwoProductsOutputData outputData = updateProductsUseCase.handle(input);
 
             if (!outputData.isSuccess()) {
                 String errorMsg = messageSource.getMessage(ERROR_ROLLBACK_OCCURRED,
