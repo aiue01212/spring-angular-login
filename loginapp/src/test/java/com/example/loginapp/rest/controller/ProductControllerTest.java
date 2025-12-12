@@ -13,14 +13,14 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import com.example.loginapp.LoginappApplication;
 import com.example.loginapp.domain.model.Product;
-import com.example.loginapp.usecase.product.GetAllProductsInputBoundary;
-import com.example.loginapp.usecase.product.GetAllProductsInputData;
-import com.example.loginapp.usecase.product.GetAllProductsOutputData;
-import com.example.loginapp.usecase.product.GetProductByIdInputBoundary;
-import com.example.loginapp.usecase.product.GetProductByIdInputData;
-import com.example.loginapp.usecase.product.GetProductByIdOutputData;
-import com.example.loginapp.usecase.product.UpdateTwoProductsInputBoundary;
-import com.example.loginapp.usecase.product.UpdateTwoProductsOutputData;
+import com.example.loginapp.domain.usecase.product.GetAllProductsInputBoundary;
+import com.example.loginapp.domain.usecase.product.GetAllProductsInputData;
+import com.example.loginapp.domain.usecase.product.GetAllProductsOutputData;
+import com.example.loginapp.domain.usecase.product.GetProductByIdInputBoundary;
+import com.example.loginapp.domain.usecase.product.GetProductByIdInputData;
+import com.example.loginapp.domain.usecase.product.GetProductByIdOutputData;
+import com.example.loginapp.domain.usecase.product.UpdateTwoProductsInputBoundary;
+import com.example.loginapp.domain.usecase.product.UpdateTwoProductsOutputData;
 
 import org.springframework.http.MediaType;
 
@@ -31,6 +31,7 @@ import java.util.Locale;
 
 import static com.example.loginapp.domain.constants.MessageKeys.*;
 import static com.example.loginapp.rest.constants.SessionKeys.*;
+import static com.example.loginapp.domain.usecase.constants.UseCaseErrorCodes.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -70,6 +71,7 @@ class ProductControllerTest {
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_PRODUCT_NOT_FOUND = "商品が見つかりません";
+        private static final String MSG_DB_ERROR = "データベースアクセスエラー: ";
         private static final String MSG_UPDATE_WITH_ROLLBACK = "更新成功（ただし例外でロールバックされます）";
         private static final String MSG_ROLLBACK_OCCURRED = "更新中に例外が発生し、ロールバックされました: テスト用例外";
         private static final String MSG_DB_CONNECTION_FAILED = "DB接続失敗";
@@ -154,18 +156,23 @@ class ProductControllerTest {
         /** getProducts() で DataAccessException が発生した場合 500 が返ることを確認 */
         @Test
         void getProducts_DataAccessException() throws Exception {
-                doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
+                doThrow(new DataAccessException(DB_ERROR) {
                 })
                                 .when(getAllProductsUseCase)
                                 .handle(any(GetAllProductsInputData.class));
+
+                String expectedErrorMsg = MSG_DB_ERROR + DB_ERROR;
+
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(Object[].class), eq(Locale.JAPANESE)))
+                                .thenReturn(expectedErrorMsg);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
 
-                mockMvc.perform(get("/api/products").session(session))
+                mockMvc.perform(get("/api/products").session(session).locale(Locale.JAPANESE))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
+                                .andExpect(jsonPath("$.error").value(expectedErrorMsg));
 
                 verify(getAllProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
@@ -219,10 +226,14 @@ class ProductControllerTest {
         /** getProductById() で DataAccessException が発生した場合 500 が返ることを確認 */
         @Test
         void getProductById_DataAccessException() throws Exception {
-                doThrow(new DataAccessException(MSG_DB_CONNECTION_FAILED) {
+                doThrow(new DataAccessException(DB_ERROR) {
                 })
                                 .when(getProductByIdUseCase)
                                 .handle(any(GetProductByIdInputData.class));
+
+                String expectedErrorMsg = MSG_DB_ERROR + DB_ERROR;
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(expectedErrorMsg);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -230,7 +241,7 @@ class ProductControllerTest {
 
                 mockMvc.perform(get("/api/products/" + PRODUCT_ID_IPHONE).session(session))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
+                                .andExpect(jsonPath("$.error").value(expectedErrorMsg));
 
                 verify(getProductByIdUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }

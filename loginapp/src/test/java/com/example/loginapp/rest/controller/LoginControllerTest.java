@@ -1,11 +1,11 @@
 package com.example.loginapp.rest.controller;
 
 import com.example.loginapp.LoginappApplication;
+import com.example.loginapp.domain.usecase.login.LoginInputBoundary;
+import com.example.loginapp.domain.usecase.login.LoginInputData;
+import com.example.loginapp.domain.usecase.login.LoginOutputData;
 import com.example.loginapp.rest.model.LoginRequest;
 import com.example.loginapp.rest.service.SessionService;
-import com.example.loginapp.usecase.login.LoginInputBoundary;
-import com.example.loginapp.usecase.login.LoginInputData;
-import com.example.loginapp.usecase.login.LoginOutputData;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
@@ -18,6 +18,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static com.example.loginapp.domain.usecase.constants.UseCaseErrorCodes.*;
 import static com.example.loginapp.rest.constants.SessionKeys.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -29,7 +30,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
 
 /**
  * {@link LoginController} の動作を検証するテストクラス。
@@ -58,6 +58,7 @@ class LoginControllerTest {
         private static final String MSG_LOGOUT = "ログアウトしました";
         private static final String MSG_SESSION_ACTIVE = "ログイン中";
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
+        private static final String MSG_DB_ERROR = "データベースアクセスエラー: ";
         private static final String MSG_INTERNAL_ERROR = "サーバー内部エラーが発生しました";
         private static final String MSG_SESSION_CREATION_ERROR = "セッション作成エラー";
         public static final String SESSION_INVALIDATE_ERROR = "セッション無効化エラー";
@@ -146,7 +147,7 @@ class LoginControllerTest {
                                 .contentType(MediaType.APPLICATION_JSON)
                                 .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
+                                .andExpect(jsonPath("$.error").value(MSG_DB_ERROR + DB_ERROR));
         }
 
         /**
@@ -180,44 +181,6 @@ class LoginControllerTest {
                                 .when(sessionService).invalidateSession(any());
 
                 mockMvc.perform(post("/api/logout").session(session))
-                                .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
-        }
-
-        /**
-         * LoginOutputData の errorCode が DB_ERROR の場合
-         */
-        @Test
-        void loginOutputDbErrorTest() throws Exception {
-                LoginRequest request = new LoginRequest();
-                request.setUsername("user");
-                request.setPassword("pass");
-
-                LoginOutputData outputData = new LoginOutputData(false, null, DB_ERROR);
-                when(loginUseCase.login(any())).thenReturn(outputData);
-
-                mockMvc.perform(post("/api/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
-                                .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
-        }
-
-        /**
-         * LoginOutputData の errorCode が null（default ケース）の場合
-         */
-        @Test
-        void loginOutputDefaultErrorTest() throws Exception {
-                LoginRequest request = new LoginRequest();
-                request.setUsername("user");
-                request.setPassword("pass");
-
-                LoginOutputData outputData = new LoginOutputData(false, null, null);
-                when(loginUseCase.login(any())).thenReturn(outputData);
-
-                mockMvc.perform(post("/api/login")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .content(objectMapper.writeValueAsString(request)))
                                 .andExpect(status().isInternalServerError())
                                 .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
         }

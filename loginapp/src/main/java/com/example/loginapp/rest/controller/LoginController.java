@@ -1,14 +1,14 @@
 package com.example.loginapp.rest.controller;
 
+import com.example.loginapp.domain.usecase.login.LoginInputBoundary;
+import com.example.loginapp.domain.usecase.login.LoginInputData;
+import com.example.loginapp.domain.usecase.login.LoginOutputData;
 import com.example.loginapp.rest.annotation.SessionRequired;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.LoginRequest;
 import com.example.loginapp.rest.model.SessionCheckResponse;
 import com.example.loginapp.rest.model.SuccessResponse;
 import com.example.loginapp.rest.service.SessionService;
-import com.example.loginapp.usecase.login.LoginInputBoundary;
-import com.example.loginapp.usecase.login.LoginInputData;
-import com.example.loginapp.usecase.login.LoginOutputData;
 
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -16,10 +16,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.context.MessageSource;
-import org.springframework.dao.DataAccessException;
 
 import static com.example.loginapp.domain.constants.MessageKeys.*;
-import static com.example.loginapp.usecase.constants.UseCaseErrorCodes.*;
+import static com.example.loginapp.domain.usecase.constants.UseCaseErrorCodes.*;
 
 import java.util.Locale;
 import org.slf4j.Logger;
@@ -42,9 +41,7 @@ public class LoginController {
     /** セッションサービス */
     private final SessionService sessionService;
 
-    /**
-     * ログ出力用のLogger
-     */
+    /** ログ出力用のLogger */
     private static final Logger log = LoggerFactory.getLogger(LoginController.class);
 
     /**
@@ -61,45 +58,23 @@ public class LoginController {
         log.info("API開始: /login");
 
         LoginInputData inputData = new LoginInputData(request.getUsername(), request.getPassword());
-        LoginOutputData outputData;
-        try {
-            outputData = loginUseCase.login(inputData);
-        } catch (DataAccessException e) {
-            String errorMsg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
-            log.error("ユーザ取得中に例外発生", e);
-            return ResponseEntity.internalServerError().body(new ErrorResponse(errorMsg));
-        }
+        LoginOutputData outputData = loginUseCase.login(inputData);
 
-        if (!outputData.isSuccess()) {
-            String errorMsg;
-            String errorCode = outputData.getErrorCode();
-
-            if (DB_ERROR.equals(errorCode)) {
-                errorMsg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
-                log.error("ユーザ取得中に例外発生");
-                return ResponseEntity.internalServerError().body(new ErrorResponse(errorMsg));
-            } else if (INVALID_CREDENTIALS.equals(errorCode)) {
-                errorMsg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
-                log.warn("認証失敗: {}", request.getUsername());
-                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(errorMsg));
-            } else {
-                errorMsg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
-                return ResponseEntity.internalServerError().body(new ErrorResponse(errorMsg));
-            }
-        }
-
-        try {
+        if (outputData.isSuccess()) {
             sessionService.createLoginSession(session, outputData.getUsername());
-        } catch (IllegalStateException e) {
-            log.error("セッション作成中に例外発生", e);
-            String msg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
-            return ResponseEntity.internalServerError().body(new ErrorResponse(msg));
+            String msg = messageSource.getMessage(SUCCESS_LOGIN, null, locale);
+            log.info("API終了: /login");
+            return ResponseEntity.ok(new SuccessResponse(msg));
         }
 
-        String msg = messageSource.getMessage(SUCCESS_LOGIN, null, locale);
-        log.info("ログイン成功: {}", outputData.getUsername());
-        log.info("API終了: /login");
-        return ResponseEntity.ok(new SuccessResponse(msg));
+        if (INVALID_CREDENTIALS.equals(outputData.getErrorCode())) {
+            String errorMsg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(errorMsg));
+        }
+
+        String errorMsg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(errorMsg));
+
     }
 
     /**
@@ -113,16 +88,9 @@ public class LoginController {
     public ResponseEntity<SessionCheckResponse> logout(HttpSession session, Locale locale) {
         log.info("API開始: /logout");
 
-        try {
-            sessionService.invalidateSession(session);
-        } catch (IllegalStateException e) {
-            log.error("セッション無効化中に例外発生", e);
-            String msg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
-            return ResponseEntity.internalServerError().body(new ErrorResponse(msg));
-        }
+        sessionService.invalidateSession(session);
 
         String msg = messageSource.getMessage(SUCCESS_LOGOUT, null, locale);
-        log.info("ログアウト完了");
         log.info("API終了: /logout");
         return ResponseEntity.ok(new SuccessResponse(msg));
     }
@@ -138,7 +106,9 @@ public class LoginController {
     @SessionRequired
     public ResponseEntity<SuccessResponse> sessionCheck(HttpSession session, Locale locale) {
         log.info("API開始: /session-check");
+
         String msg = messageSource.getMessage(SUCCESS_SESSION_CHECK, null, locale);
+
         log.info("API終了: /session-check");
         return ResponseEntity.ok(new SuccessResponse(msg));
     }
