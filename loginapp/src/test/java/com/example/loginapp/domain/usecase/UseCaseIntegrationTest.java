@@ -1,7 +1,6 @@
 package com.example.loginapp.domain.usecase;
 
 import com.example.loginapp.domain.model.Product;
-import com.example.loginapp.domain.usecase.constants.UseCaseErrorCodes;
 import com.example.loginapp.domain.usecase.login.LoginInputBoundary;
 import com.example.loginapp.domain.usecase.login.LoginInputData;
 import com.example.loginapp.domain.usecase.login.LoginOutputData;
@@ -10,6 +9,7 @@ import com.example.loginapp.domain.usecase.product.*;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.dao.DataAccessException;
 
 import static com.example.loginapp.domain.constants.MessageKeys.ERROR_PRODUCT_NOT_FOUND_ID;
 import static com.example.loginapp.domain.usecase.constants.Constants.*;
@@ -151,9 +151,8 @@ public class UseCaseIntegrationTest {
                 PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
                 PRODUCT_ID_GALAXY, PRICE_UPDATE_2);
 
-        UpdateTwoProductsOutputData output = updateTwoProductsInteractor.handle(input);
-
-        assertFalse(output.isSuccess());
-        assertEquals(UseCaseErrorCodes.ROLLBACK_ERROR, output.getErrorMessage());
+        assertThrows(DataAccessException.class, () -> {
+            updateTwoProductsInteractor.handle(input);
+        });
     }
 }

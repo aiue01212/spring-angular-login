@@ -6,17 +6,14 @@ import com.example.loginapp.domain.service.ProductService;
 
 import lombok.RequiredArgsConstructor;
 
-import java.util.Locale;
-
-import static com.example.loginapp.domain.constants.MessageKeys.ERROR_ROLLBACK_TEST;
-
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.springframework.context.MessageSource;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import static com.example.loginapp.domain.constants.ExceptionMessages.*;
 
 /**
  * {@link ProductService} の実装クラス。
@@ -29,9 +26,6 @@ public class ProductServiceImpl implements ProductService {
 
     /** 商品リポジトリ */
     private final ProductRepository productRepository;
-
-    /** メッセージリソース */
-    private final MessageSource messageSource;
 
     /**
      * すべての商品を取得する。
@@ -70,8 +64,7 @@ public class ProductServiceImpl implements ProductService {
         productRepository.updatePrice(id1, price1);
         productRepository.updatePrice(id2, price2);
 
-        String rollbackMsg = messageSource.getMessage(ERROR_ROLLBACK_TEST, null, Locale.getDefault());
-        throw new DataAccessException(rollbackMsg) {
+        throw new DataAccessException(ROLLBACK_TEST) {
         };
     }
 }

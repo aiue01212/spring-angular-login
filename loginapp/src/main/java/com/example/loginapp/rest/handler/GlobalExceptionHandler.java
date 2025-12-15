@@ -31,9 +31,6 @@ public class GlobalExceptionHandler {
             DataAccessException ex, Locale locale) {
 
         String msg = messageSource.getMessage(ERROR_DATABASE_ACCESS, new Object[] { ex.getMessage() }, locale);
-        if (msg == null) {
-            msg = "データベースアクセスエラーが発生しました";
-        }
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse(msg));
     }

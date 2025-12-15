@@ -27,8 +27,7 @@ public interface ProductService {
     Product getProductById(int id);
 
     /**
-     * 2つの商品価格を更新し、最後に例外を発生させることで
-     * トランザクションのロールバックが有効であることを確認するためのテスト処理。
+     * 2商品を更新し、ロールバック確認用に例外を送出する。
      *
      * @param id1    商品1のID
      * @param price1 商品1の新価格

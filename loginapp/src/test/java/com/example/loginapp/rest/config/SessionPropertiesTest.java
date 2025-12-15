@@ -35,6 +35,50 @@ class SessionPropertiesTest {
     }
 
     /**
+     * SessionProperties のデフォルトコンストラクタが正しくインスタンスを生成できることを確認するテスト。
+     */
+    @Test
+    void testDefaultConstructor() {
+        SessionProperties sp = new SessionProperties();
+        assertNotNull(sp);
+    }
+
+    /**
+     * MessageSource の getter/setter をテストする。
+     * Lombok @Data によって生成される getter/setter のカバレッジを確保する。
+     */
+    @Test
+    void testMessageSourceGetterSetter() {
+        MessageSource ms = mock(MessageSource.class);
+        sessionProperties.setMessageSource(ms);
+        assertEquals(ms, sessionProperties.getMessageSource());
+    }
+
+    /**
+     * Lombok が自動生成する toString, equals, hashCode のカバレッジを取得するテスト。
+     */
+    @Test
+    void testLombokMethods() {
+        String str = sessionProperties.toString();
+        assertNotNull(str);
+
+        SessionProperties same = sessionProperties;
+        SessionProperties copy = new SessionProperties();
+        copy.setMessageSource(sessionProperties.getMessageSource());
+        copy.setTimeoutMillis(sessionProperties.getTimeoutMillis());
+        SessionProperties different = new SessionProperties();
+        different.setTimeoutMillis(sessionProperties.getTimeoutMillis() + 1);
+
+        assertTrue(sessionProperties.equals(same));
+        assertTrue(sessionProperties.equals(copy));
+        assertFalse(sessionProperties.equals(different));
+        assertFalse(sessionProperties.equals(null));
+
+        assertEquals(sessionProperties.hashCode(), copy.hashCode());
+        assertNotEquals(sessionProperties.hashCode(), different.hashCode());
+    }
+
+    /**
      * セッションタイムアウトに正常値を設定した場合のテスト。
      * 正しく値が設定されることを検証する。
      */

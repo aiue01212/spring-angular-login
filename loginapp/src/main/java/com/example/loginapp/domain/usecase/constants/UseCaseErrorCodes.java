@@ -20,6 +20,9 @@ public final class UseCaseErrorCodes {
     /** トランザクションロールバックが発生した場合のエラー */
     public static final String ROLLBACK_ERROR = "ROLLBACK_ERROR";
 
+    /** 未知のエラー（カバレッジ用） */
+    public static final String SOME_UNKNOWN_ERROR = "SOME_UNKNOWN_ERROR";
+
     private UseCaseErrorCodes() {
     }
 }

@@ -204,4 +204,25 @@ class LoginControllerTest {
                                 .andExpect(status().isBadRequest())
                                 .andExpect(jsonPath("$.error").value(MSG_INVALID_CREDENTIALS));
         }
+
+        /**
+         * LoginOutputData の errorCode が INVALID_CREDENTIALS でも DB エラーや予期せぬエラーではない場合
+         * → 内部サーバーエラーとして返却されることを確認
+         */
+        @Test
+        void loginOutputUnknownErrorTest() throws Exception {
+                LoginRequest request = new LoginRequest();
+                request.setUsername("user");
+                request.setPassword("pass");
+
+                LoginOutputData outputData = new LoginOutputData(false, null, SOME_UNKNOWN_ERROR);
+                when(loginUseCase.login(any())).thenReturn(outputData);
+
+                mockMvc.perform(post("/api/login")
+                                .contentType(MediaType.APPLICATION_JSON)
+                                .content(objectMapper.writeValueAsString(request))
+                                .header("Accept-Language", "ja"))
+                                .andExpect(status().isInternalServerError())
+                                .andExpect(jsonPath("$.error").value(MSG_INTERNAL_ERROR));
+        }
 }

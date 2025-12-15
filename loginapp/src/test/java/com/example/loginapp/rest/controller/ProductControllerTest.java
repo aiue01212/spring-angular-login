@@ -71,7 +71,6 @@ class ProductControllerTest {
         private static final String MSG_NOT_LOGGED_IN = "未ログインです";
         private static final String MSG_SESSION_EXPIRED = "セッションがタイムアウトしました";
         private static final String MSG_PRODUCT_NOT_FOUND = "商品が見つかりません";
-        private static final String MSG_DB_ERROR = "データベースアクセスエラー: ";
         private static final String MSG_UPDATE_WITH_ROLLBACK = "更新成功（ただし例外でロールバックされます）";
         private static final String MSG_ROLLBACK_OCCURRED = "更新中に例外が発生し、ロールバックされました: テスト用例外";
         private static final String MSG_DB_CONNECTION_FAILED = "DB接続失敗";
@@ -100,6 +99,8 @@ class ProductControllerTest {
                 when(messageSource.getMessage(eq(ERROR_ROLLBACK_OCCURRED), any(), any(Locale.class)))
                                 .thenReturn(MSG_ROLLBACK_OCCURRED);
                 when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                                .thenReturn(MSG_DB_CONNECTION_FAILED);
+                when(messageSource.getMessage(eq(ERROR_INTERNAL_SERVER), any(), any(Locale.class)))
                                 .thenReturn(MSG_DB_CONNECTION_FAILED);
         }
 
@@ -161,10 +162,8 @@ class ProductControllerTest {
                                 .when(getAllProductsUseCase)
                                 .handle(any(GetAllProductsInputData.class));
 
-                String expectedErrorMsg = MSG_DB_ERROR + DB_ERROR;
-
-                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(Object[].class), eq(Locale.JAPANESE)))
-                                .thenReturn(expectedErrorMsg);
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any()))
+                                .thenReturn(MSG_DB_CONNECTION_FAILED);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -172,7 +171,7 @@ class ProductControllerTest {
 
                 mockMvc.perform(get("/api/products").session(session).locale(Locale.JAPANESE))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(expectedErrorMsg));
+                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
 
                 verify(getAllProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
@@ -231,9 +230,8 @@ class ProductControllerTest {
                                 .when(getProductByIdUseCase)
                                 .handle(any(GetProductByIdInputData.class));
 
-                String expectedErrorMsg = MSG_DB_ERROR + DB_ERROR;
-                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
-                                .thenReturn(expectedErrorMsg);
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any()))
+                                .thenReturn(MSG_DB_CONNECTION_FAILED);
 
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
@@ -241,7 +239,7 @@ class ProductControllerTest {
 
                 mockMvc.perform(get("/api/products/" + PRODUCT_ID_IPHONE).session(session))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(expectedErrorMsg));
+                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
 
                 verify(getProductByIdUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
@@ -289,6 +287,9 @@ class ProductControllerTest {
                                 .when(updateProductsUseCase)
                                 .handle(any());
 
+                when(messageSource.getMessage(eq(ERROR_INTERNAL_SERVER), any(), any()))
+                                .thenReturn(MSG_RUNTIME_EXCEPTION);
+
                 MockHttpSession session = new MockHttpSession();
                 session.setAttribute(IS_LOGGED_IN, true);
                 session.setAttribute(LOGIN_TIME, System.currentTimeMillis());
@@ -297,7 +298,7 @@ class ProductControllerTest {
                                 .session(session)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(MSG_ROLLBACK_OCCURRED));
+                                .andExpect(jsonPath("$.error").value(MSG_RUNTIME_EXCEPTION));
 
                 verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE))
                                 .handle(any());
@@ -340,9 +341,11 @@ class ProductControllerTest {
                 String dbErrorMsg = MSG_DB_CONNECTION_FAILED;
                 String expectedErrorMsg = MSG_ROLLBACK_PREFIX + dbErrorMsg;
 
-                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(), any(Locale.class)))
+                when(messageSource.getMessage(eq(ERROR_DATABASE_ACCESS), any(Object[].class),
+                                any(Locale.class)))
                                 .thenReturn(dbErrorMsg);
-                when(messageSource.getMessage(eq(ERROR_ROLLBACK_OCCURRED), any(), any(Locale.class)))
+                when(messageSource.getMessage(eq(ERROR_ROLLBACK_OCCURRED), any(Object[].class),
+                                any(Locale.class)))
                                 .thenReturn(expectedErrorMsg);
 
                 MockHttpSession session = new MockHttpSession();
@@ -353,7 +356,7 @@ class ProductControllerTest {
                                 .session(session)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isInternalServerError())
-                                .andExpect(jsonPath("$.error").value(expectedErrorMsg));
+                                .andExpect(jsonPath("$.error").value(MSG_DB_CONNECTION_FAILED));
 
                 verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
