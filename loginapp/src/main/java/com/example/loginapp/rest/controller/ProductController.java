@@ -13,6 +13,7 @@ import com.example.loginapp.rest.annotation.SessionRequired;
 import com.example.loginapp.rest.model.ErrorResponse;
 import com.example.loginapp.rest.model.ProductResponse;
 import com.example.loginapp.rest.model.SessionCheckResponse;
+import com.example.loginapp.rest.model.SuccessResponse;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.context.MessageSource;
@@ -108,7 +109,7 @@ public class ProductController {
      */
     @PostMapping("/update-test")
     @SessionRequired
-    public ResponseEntity<ErrorResponse> updateTest(HttpSession session, Locale locale) {
+    public ResponseEntity<SessionCheckResponse> updateTest(HttpSession session, Locale locale) {
         log.info("API開始: /products/update-test");
 
         UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
@@ -128,6 +129,6 @@ public class ProductController {
         String successMsg = messageSource.getMessage(SUCCESS_UPDATE_WITH_ROLLBACK, null, locale);
 
         log.info("API終了: /products/update-test");
-        return ResponseEntity.ok(new ErrorResponse(successMsg));
+        return ResponseEntity.ok(new SuccessResponse(successMsg));
     }
 }

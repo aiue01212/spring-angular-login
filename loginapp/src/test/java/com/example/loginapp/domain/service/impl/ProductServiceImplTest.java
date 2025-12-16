@@ -8,6 +8,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataAccessException;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
@@ -100,7 +101,7 @@ class ProductServiceImplTest {
     @Test
     void updateTwoProductsWithRollback_ThrowsException() {
 
-        RuntimeException ex = assertThrows(RuntimeException.class,
+        DataAccessException ex = assertThrows(DataAccessException.class,
                 () -> productService.updateTwoProductsWithRollback(
                         ID_IPHONE, PRICE_UPDATE_1,
                         ID_GALAXY, PRICE_UPDATE_2));

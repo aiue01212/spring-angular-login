@@ -146,7 +146,7 @@ public class UseCaseIntegrationTest {
      * ※このテストでは実際のトランザクションロールバックの挙動を確認。
      */
     @Test
-    void testUpdateTwoProductsSuccess() {
+    void testUpdateTwoProducts_RollbackOccurs() {
         UpdateTwoProductsInputData input = new UpdateTwoProductsInputData(
                 PRODUCT_ID_IPHONE, PRICE_UPDATE_1,
                 PRODUCT_ID_GALAXY, PRICE_UPDATE_2);

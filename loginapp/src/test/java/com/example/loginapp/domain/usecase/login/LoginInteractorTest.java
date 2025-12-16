@@ -84,7 +84,7 @@ class LoginInteractorTest {
      * データアクセス例外が発生した場合、DBエラーコードが返されることを検証する。
      */
     @Test
-    void testLoginDataAccessException() {
+    void testLogin_PropagatesDataAccessException() {
         when(userService.findUser(VALID_USERNAME)).thenThrow(new DataAccessException(DB_ERROR) {
         });
 

@@ -50,7 +50,6 @@ public class LoginController {
      * @param request ログイン情報
      * @param session HttpSession
      * @param locale  ロケール情報
-     * @return 成功時はログイン成功メッセージ、失敗時はエラーメッセージ
      */
     @PostMapping("/login")
     public ResponseEntity<SessionCheckResponse> login(@RequestBody LoginRequest request, HttpSession session,
@@ -69,10 +68,12 @@ public class LoginController {
 
         if (INVALID_CREDENTIALS.equals(outputData.getErrorCode())) {
             String errorMsg = messageSource.getMessage(ERROR_INVALID_CREDENTIALS, null, locale);
+            log.info("API終了: /login");
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ErrorResponse(errorMsg));
         }
 
         String errorMsg = messageSource.getMessage(ERROR_INTERNAL_SERVER, null, locale);
+        log.info("API終了: /login");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(new ErrorResponse(errorMsg));
 
     }
@@ -82,7 +83,6 @@ public class LoginController {
      *
      * @param session HttpSession
      * @param locale  ロケール情報
-     * @return ログアウト完了メッセージ
      */
     @PostMapping("/logout")
     public ResponseEntity<SessionCheckResponse> logout(HttpSession session, Locale locale) {
@@ -100,7 +100,6 @@ public class LoginController {
      *
      * @param session HttpSession
      * @param locale  ロケール情報
-     * @return ログイン中であれば成功メッセージ、未ログインまたはセッション切れの場合はエラーメッセージ
      */
     @GetMapping("/session-check")
     @SessionRequired

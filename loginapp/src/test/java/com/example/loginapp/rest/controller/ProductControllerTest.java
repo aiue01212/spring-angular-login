@@ -321,7 +321,7 @@ class ProductControllerTest {
                                 .session(session)
                                 .contentType(MediaType.APPLICATION_JSON))
                                 .andExpect(status().isOk())
-                                .andExpect(jsonPath("$.error").value(MSG_UPDATE_WITH_ROLLBACK));
+                                .andExpect(jsonPath("$.message").value(MSG_UPDATE_WITH_ROLLBACK));
 
                 verify(updateProductsUseCase, times(EXPECTED_CALL_ONCE)).handle(any());
         }
