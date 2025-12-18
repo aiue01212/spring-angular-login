@@ -22,7 +22,6 @@ const Welcome: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
-    // セッションチェック
     const checkSession = async () => {
       try {
         const res = await fetch(API_ENDPOINTS.SESSION_CHECK, {
@@ -38,7 +37,6 @@ const Welcome: React.FC = () => {
       }
     };
 
-    // 商品取得
     const fetchProducts = async () => {
       try {
         const res = await fetch(API_ENDPOINTS.PRODUCTS, {
